@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-npm install -g driftless
+npm install -g @driftless-sh/cli
 ```
 
 ## Authentication

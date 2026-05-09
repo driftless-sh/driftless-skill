@@ -29,7 +29,7 @@ Every time you work on a codebase with Driftless installed, follow this loop:
 
 ```bash
 # Install the CLI
-npm install -g driftless
+npm install -g @driftless-sh/cli
 
 # Authenticate (get API key from your Driftless Dashboard)
 driftless login --key drift_xxx
@@ -44,12 +44,12 @@ export DRIFTLESS_API_URL=https://your-instance.com/api/v1
 ALWAYS load relevant context first. Before touching endpoints, guards, auth, services, modules, routing, or package boundaries:
 
 ```bash
-npx driftless context get <feature-name>
+driftless context get <feature-name>
 ```
 
 Example:
 ```bash
-npx driftless context get b2b-guard
+driftless context get b2b-guard
 ```
 
 This returns:
@@ -61,7 +61,7 @@ This returns:
 
 If no watcher exists for what you need, check what's available:
 ```bash
-npx driftless context list
+driftless context list
 ```
 
 ## Before completing work
@@ -69,7 +69,7 @@ npx driftless context list
 Always scan your diff against Cloud rules:
 
 ```bash
-npx driftless scan --diff
+driftless scan --diff
 ```
 
 If violations are reported, **fix them before pushing**. The scan output tells you:
@@ -91,7 +91,7 @@ Example violation:
 When you learn something about the codebase that future agents should know, document it:
 
 ```bash
-npx driftless context add "b2b-guard" \
+driftless context add "b2b-guard" \
   --what "Central auth guard for all B2B endpoints" \
   --how "Validates API keys and Clerk identity for business-facing routes" \
   --where "src/shared/guards/business-access.guard.ts"
@@ -104,7 +104,7 @@ This becomes team memory in Cloud. Every agent can load it.
 If this repo doesn't have Driftless yet:
 
 ```bash
-npx driftless init
+driftless init
 ```
 
 This:
