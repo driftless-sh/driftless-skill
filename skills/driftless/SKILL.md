@@ -1,3 +1,10 @@
+---
+name: driftless
+description: Shared codebase memory layer for AI engineering teams. Load context, scan diffs, enforce rules, track watchers, keep agents aligned with team architecture.
+version: 1.0.0
+tags: [architecture, context, nestjs, typescript, ai-agents, code-review]
+---
+
 # Driftless — Agent Skill
 
 ## What Driftless is
