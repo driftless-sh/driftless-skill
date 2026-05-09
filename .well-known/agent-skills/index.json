@@ -1,0 +1,1 @@
+{"skills":[{"name":"driftless","description":"Shared codebase memory layer for AI engineering teams. Scan repos, enforce architectural rules, track context watchers, and keep agents aligned with team standards.","path":"skills/driftless","tags":["architecture","context","nestjs","typescript","ai-agents"],"homepage":"https://github.com/joseluistello/Driftless","license":"MIT"}]}
