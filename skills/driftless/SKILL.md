@@ -1,158 +1,161 @@
 ---
 name: driftless
-description: Shared codebase memory layer for AI engineering teams. Load context, scan diffs, enforce rules, track watchers, keep agents aligned with team architecture.
-version: 1.0.0
-tags: [architecture, context, nestjs, typescript, ai-agents, code-review]
+description: Shared codebase memory for engineering teams. Use when the user mentions "driftless", "context memory", "scan diff", "architectural rules", "context watchers", "codebase drift", or asks to check code against team standards before pushing.
+license: MIT
+metadata:
+  author: Driftless
+  version: 1.1.0
+  category: developer-tools
+  tags: [architecture, context, nestjs, typescript, ai-agents, code-review, cli]
+  documentation: https://driftless.icu/docs
 ---
 
-# Driftless — Agent Skill
+# Driftless — Codebase Memory Layer
 
-## What Driftless is
+Driftless is the shared codebase memory layer for engineering teams using AI coding agents. It stores architectural context in the cloud and verifies local code against team rules.
 
-Driftless is the **shared codebase memory layer** for engineering teams using AI coding agents.
+## When to activate
 
-It's not a linter. It's not a PR reviewer. It's not CI.
+- User mentions "driftless", "context", "scan", or "violations"
+- Working in a repo with `AGENTS.md` that references Driftless
+- Before modifying endpoints, guards, auth, services, or modules
+- Before committing or pushing code changes
 
-**Driftless Cloud** stores your team's architecture context — rules, watchers, component maps, violations. **The CLI** runs locally to scan, sync, and query that context. **Agents** use Driftless to load context before coding and verify changes before finishing.
+## Agent workflow
 
-## The agent's loop
+Follow this loop every time you work in a Driftless-enabled repo:
 
-Every time you work on a codebase with Driftless installed, follow this loop:
-
-1. **Load context before touching code**
-2. **Write your changes**
-3. **Scan your diff before finishing**
-4. **Fix violations if found**
-5. **Push clean**
-
-## Quick setup
+### Step 1: Load context before coding
 
 ```bash
-# Install the CLI
-npm install -g @driftless-sh/cli
-
-# Authenticate (get API key from your Driftless Dashboard)
-driftless login --key drift_xxx
-
-# Or use env var
-export DRIFTLESS_API_KEY=drift_xxx
-export DRIFTLESS_API_URL=https://your-instance.com/api/v1
+driftless context get <feature>
 ```
 
-## Before writing code
+Read the returned context: `what`, `how`, `where_files`, `decisions`, `gotchas`, `ownership`. Respect these constraints when writing code.
 
-ALWAYS load relevant context first. Before touching endpoints, guards, auth, services, modules, routing, or package boundaries:
-
-```bash
-driftless context get <feature-name>
-```
-
-Example:
-```bash
-driftless context get b2b-guard
-```
-
-This returns:
-- **what** the feature is
-- **how** it works
-- **where** the files live
-- **who** consumes it
-- **recent changes** (history)
-
-If no watcher exists for what you need, check what's available:
+If unsure what feature to load:
 ```bash
 driftless context list
+driftless context search "keyword"
 ```
 
-## Before completing work
+### Step 2: Implement changes
 
-Always scan your diff against Cloud rules:
+Write code following the patterns from the loaded context. Apply required decorators, guards, and conventions.
+
+### Step 3: Scan diff before finishing
 
 ```bash
 driftless scan --diff
 ```
 
-If violations are reported, **fix them before pushing**. The scan output tells you:
-- Which rule was violated
-- What file and line
-- What decorator/import/pattern is missing
-- How to fix it
+This evaluates uncommitted changes against all active Cloud rules.
+
+### Step 4: Fix violations
+
+If violations are found, read each one and apply the fix described in the `explanation` field. Re-scan until clean.
 
 Example violation:
-```
-✕ B2B endpoints must use BusinessAccessGuard
-  New endpoint is missing required decorator: @UseGuards(BusinessAccessGuard)
-  File: src/routes/business/credit-line.ts:12
-  Code: @Post('/business/credit-line')
+```json
+{
+  "severity": "high",
+  "message": "Every B2B endpoint must use BusinessAccessGuard",
+  "explanation": "Missing required decorator: @UseGuards(BusinessAccessGuard)",
+  "file": "src/routes/business/credit-line.ts",
+  "line": 12
+}
 ```
 
-## If you discover durable context
+Fix:
+```typescript
+@Post('/business/credit-line')
+@UseGuards(BusinessAccessGuard)  // added
+async createCreditLine(@Body() dto: CreditLineDto) {
+  return this.service.create(dto)
+}
+```
 
-When you learn something about the codebase that future agents should know, document it:
+### Step 5: Push only when clean
+
+Do not push if scan returns violations.
+
+## Discovering and documenting context
+
+When you learn something durable about the codebase that other agents should know:
 
 ```bash
-driftless context add "b2b-guard" \
-  --what "Central auth guard for all B2B endpoints" \
-  --how "Validates API keys and Clerk identity for business-facing routes" \
-  --where "src/shared/guards/business-access.guard.ts"
+driftless context add "feature-name" \
+  --what "What this piece is" \
+  --how "How it works" \
+  --pattern "src/path/**" \
+  --decisions "Why built this way" \
+  --gotchas "Known traps" \
+  --ownership "Who maintains it"
 ```
 
-This becomes team memory in Cloud. Every agent can load it.
+Fields:
+- `--what` — what this piece is
+- `--how` — how it works
+- `--pattern` — glob for dynamic file resolution (preferred)
+- `--where` — explicit file path (use instead of pattern for single files)
+- `--decisions` — design decisions and rationale
+- `--gotchas` — known edge cases and traps
+- `--ownership` — team or person who maintains it
+
+**Note:** `--pattern` and `--where` are mutually exclusive. Use `--pattern` for directories that may grow.
 
 ## Onboarding a new repo
-
-If this repo doesn't have Driftless yet:
 
 ```bash
 driftless init
 ```
 
-This:
-1. Connects the repo to your Driftless workspace
-2. Scans the codebase → builds a component map
-3. Suggests architectural rules based on detected patterns
-4. Installs the Driftless AGENTS.md skill
+This scans the codebase (3 passes: identity, AST extraction, semantic enrichment), uploads the component map to Cloud, suggests architectural rules, and installs `AGENTS.md`.
 
-## Rules — what gets checked
+## Rule types Driftless checks
 
-Driftless checks your code against **structural rules** stored in Cloud. Rules are defined by your team in plain language:
+| Pattern type | What it checks |
+|---|---|
+| `ENDPOINT_MISSING_DECORATOR` | Missing @UseGuards, @Roles, etc. |
+| `FILE_IN_QUARANTINE` | New code in debt-heavy files |
+| `FORBIDDEN_IMPORT` | Prohibited imports in new code |
+| `MISSING_PROPERTY` | Required decorator properties |
+| `DEPENDENCY_FORBIDDEN` | Forbidden cross-module calls |
+| `COMPONENT_LIMIT` | File/method size limits |
+| `NAMING_CONVENTION` | Component naming patterns |
 
+## Common issues
+
+**"Workspace not found"** — Run `driftless init` first to connect the repo.
+
+**"No git remote found"** — Ensure the repo has a remote configured (`git remote -v`).
+
+**"Watcher not found"** — Run `driftless context list` to see available watchers. The slug must match exactly.
+
+**Scan returns nothing** — No uncommitted changes exist. Make sure you have unstaged modifications.
+
+**API key errors** — Run `driftless login --key <key>` or set `DRIFTLESS_API_KEY` env var.
+
+## Output format
+
+All commands output JSON by default for agent consumption. Add `--human` for readable text:
+
+```bash
+driftless context get b2b-guard --human
+driftless context search "auth" --human
 ```
-"Every B2B endpoint must use BusinessAccessGuard"
-```
-
-The engine translates this into deterministic checks. Structural rules never produce false positives — they use AST matching, not AI guesswork.
-
-**7 pattern types**:
-- `ENDPOINT_MISSING_DECORATOR` — missing @UseGuards, @Roles, etc.
-- `FILE_IN_QUARANTINE` — code added to files marked as debt-heavy
-- `FORBIDDEN_IMPORT` — prohibited imports in new code
-- `MISSING_PROPERTY` — required decorator properties missing
-- `DEPENDENCY_FORBIDDEN` — service depending on forbidden modules
-- `COMPONENT_LIMIT` — file/method size limits
-- `NAMING_CONVENTION` — components must follow naming patterns
 
 ## What Driftless does NOT do
 
-- Does not modify your code
-- Does not approve or reject PRs
-- Does not block merges
+- Does not modify code
+- Does not approve/reject PRs or block merges
+- Does not run tests or deploy
 - Is not a CI pipeline
-- Does not run tests
-- Does not deploy
 
-It is **context memory + structural verification**. Nothing more.
-
-## Important constraints
-
-- **v1 is TypeScript backend only** (NestJS, Express, Next.js API routes)
-- **Never hardcode model providers** — Driftless uses BYOM
-- **All stored keys are encrypted** (AES-256-GCM)
-- **Cloud is the source of truth** — not your local session memory
-- **Context watchers auto-update** when tracked files change
+It is context memory + structural verification only.
 
 ## See also
 
-- [CLI Command Reference](references/commands.md)
-- [Agent Workflow Guide](references/workflow.md)
-- [Cloud Architecture](references/cloud.md)
+- [CLI Command Reference](references/commands.md) — Full command docs with examples
+- [Agent Workflow Guide](references/workflow.md) — Detailed workflow with patterns
+- [Cloud Architecture](references/cloud.md) — How Cloud stores and syncs context

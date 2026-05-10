@@ -1,75 +1,43 @@
 # Agent Workflow Guide
 
-## The Driftless loop
-
-Every time an AI agent works on a Driftless-enabled repo, it must follow this loop:
+## The loop
 
 ```
-┌─────────────────────────────────────────────┐
-│  1. LOAD CONTEXT                            │
-│  driftless context get <feature>            │
-│  Understand what/where/how before coding    │
-├─────────────────────────────────────────────┤
-│  2. IMPLEMENT                               │
-│  Write code following the loaded context    │
-│  Apply required decorators and patterns     │
-├─────────────────────────────────────────────┤
-│  3. SCAN DIFF                               │
-│  driftless scan --diff                      │
-│  Check changes against Cloud rules          │
-├─────────────────────────────────────────────┤
-│  4. FIX VIOLATIONS                          │
-│  Read violation explanation                 │
-│  Apply required fixes                       │
-│  Re-scan until clean                        │
-├─────────────────────────────────────────────┤
-│  5. PUSH                                    │
-│  Only after clean scan                      │
-│  Cloud updates watchers on push             │
-└─────────────────────────────────────────────┘
+1. LOAD CONTEXT  →  driftless context get <feature>
+2. IMPLEMENT     →  Write code following loaded context
+3. SCAN DIFF     →  driftless scan --diff
+4. FIX           →  Resolve violations, re-scan
+5. PUSH          →  Only when clean
 ```
 
-## Step 1: Load Context
+## Step 1: Load context
 
-**ALWAYS do this first.** Before touching any code that deals with:
+Do this before touching: endpoints, guards, auth, services, modules, or package boundaries.
 
-- Endpoints (controllers, routes, handlers)
-- Auth (guards, middleware, decorators)
-- Services (business logic, dependencies)
-- Modules (imports/exports structure)
-- Package boundaries (what imports what)
-
-**How:**
 ```bash
 driftless context get <feature>
 ```
 
-**What you get:**
-- `what` — description of the feature/concept
-- `how` — how it's implemented, patterns used
-- `where` — canonical file paths where it lives
-- `used_by` — what consumes this feature
-- `history` — recent changes and PRs that touched it
+Returns: `what`, `how`, `where_files`, `pattern`, `decisions`, `gotchas`, `ownership`, `where_used_by`, `history`.
 
-**If no watcher exists:**
+If no watcher exists for your feature:
 ```bash
-driftless context list    # see what's available
+driftless context list
+driftless context search "keyword"
 ```
-
-If what you need isn't documented yet, use `driftless context add` to create it after you understand it.
 
 ## Step 2: Implement
 
-Write your code. Apply the patterns you learned from context:
+Follow the patterns from context. Respect `decisions` and avoid `gotchas`.
 
 ```typescript
-// ❌ WRONG — no guard on B2B endpoint
+// Wrong — missing guard
 @Post('/business/credit-line')
 async createCreditLine(@Body() dto: CreditLineDto) {
   return this.service.create(dto)
 }
 
-// ✅ CORRECT — BusinessAccessGuard applied
+// Correct — guard applied
 @Post('/business/credit-line')
 @UseGuards(BusinessAccessGuard)
 async createCreditLine(@Body() dto: CreditLineDto) {
@@ -77,81 +45,50 @@ async createCreditLine(@Body() dto: CreditLineDto) {
 }
 ```
 
-## Step 3: Scan Diff
-
-Before declaring work complete:
+## Step 3: Scan
 
 ```bash
 driftless scan --diff
 ```
 
-**What gets checked:**
-- All active structural rules in your workspace
-- New code against the component baseline (known debt is ignored)
-- Both staged and unstaged changes (or `--diff` for unstaged only)
+Checks: active structural rules, new code vs baseline (known debt ignored).
 
-**Severity levels:**
-- `critical` / `high` — **must fix** before pushing
-- `warning` — should fix, strong recommendation
-- `info` — advisory, semantic suggestions
+Severity: `critical`/`high` = must fix, `warning` = should fix, `info` = advisory.
 
-## Step 4: Fix Violations
+## Step 4: Fix violations
 
-Read each violation carefully:
-
-```
-[HIGH] Every B2B endpoint must use BusinessAccessGuard
-  New endpoint is missing required decorator: @UseGuards(BusinessAccessGuard)
-  File: src/routes/business/credit-line.ts:12
-  Code: @Post('/business/credit-line')
-```
-
-**How to fix:**
-1. Look at the `explanation` field — it tells you exactly what's missing
-2. The `Code` snippet shows the violating line
-3. Add the required decorator/pattern
-4. Re-scan: `driftless scan --diff`
-
-```typescript
-// Add the missing guard
-@Post('/business/credit-line')
-@UseGuards(BusinessAccessGuard)  // ← Added
-async createCreditLine(@Body() dto: CreditLineDto) {
-  return this.service.create(dto)
-}
-```
+Read the `explanation` field — it tells you exactly what's missing. The `file` and `line` fields point to the violation. Re-scan after each fix.
 
 ## Step 5: Push
 
-**Only push when scan returns clean.**
+Only push when `{ "status": "clean", "violations": [] }`.
 
-After push, Cloud automatically updates context watchers if you modified tracked files. No manual updates needed.
+## Documenting new context
 
-## When you discover new context
-
-If you learn something durable about the codebase that other agents should know:
+When you discover durable info about the codebase:
 
 ```bash
 driftless context add "payment-module" \
-  --what "Handles all payment processing via Stripe" \
-  --how "src/payments/payments.module.ts → PaymentsService → StripeAdapter" \
-  --where "src/payments/"
+  --what "Handles Stripe payments" \
+  --how "PaymentsService → StripeAdapter" \
+  --pattern "src/payments/**" \
+  --decisions "Stripe due to existing integration" \
+  --gotchas "Idempotency keys required" \
+  --ownership "@payments-team"
 ```
 
-This becomes team memory. Every agent can query it with `driftless context get payment-module`.
+## Pattern vs where_files
 
-## Common patterns
+- `--pattern` = glob rule, resolves dynamically (preferred for directories)
+- `--where` = explicit file path (for single files)
+- Mutually exclusive — use one or the other
+- Pattern resolves to `where_files` on scan
 
-### NestJS endpoints
-- B2B endpoints require `@UseGuards(BusinessAccessGuard)`
-- Admin endpoints require `@UseGuards(AdminGuard)`
-- Public endpoints may have no guard (depending on rules)
+## Output format
 
-### Quarantined files
-Files marked as quarantined (`FILE_IN_QUARANTINE` rule) have known technical debt. **Do not add new code to them.** Refactor the debt or extract new logic to separate files.
+JSON by default (for agents). `--human` for readable text (for debugging).
 
-### Forbidden imports
-Some modules are forbidden from being imported in new code. The scan will tell you which import is forbidden and suggest alternatives.
-
-### Naming conventions
-Components must follow team naming patterns. For example, all services must end with `Service`, all guards must end with `Guard`.
+```bash
+driftless context get b2b-guard        # JSON
+driftless context get b2b-guard --human  # readable
+```
