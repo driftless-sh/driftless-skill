@@ -137,7 +137,7 @@ driftless context list
 driftless context get <slug>
 ```
 
-Returns: `what`, `how`, `where`, `used_by`, `gotchas`, `decisions`, `history` (recent events).
+Returns: `what`, `how`, `where`, `used_by`, `gotchas`, `decisions`, `version`, `history` (recent events).
 
 Example:
 ```bash
@@ -146,6 +146,7 @@ driftless context get billing
 
 ```
 Name:      billing
+Version:   3
 What:      Handles all subscription and payment processing
 How:       BillingModule → BillingService → StripeAdapter. Never call Stripe directly.
 Where:     src/billing/
@@ -194,7 +195,7 @@ Use this after discovering something worth persisting. Only pass the fields you 
 driftless context anchor <slug> --file path/to/file.md
 ```
 
-Stores the file's content as `file_content` on the watcher. Useful for linking AGENTS.md sections, architecture docs, or runbooks.
+Stores the file's content on the watcher and records `anchored_doc_path`. When watched files change, Driftless flags the doc as out of sync with the specific file path in the stale reason.
 
 #### Push context for specific files
 
@@ -203,6 +204,34 @@ driftless context push --files "src/auth/**"
 ```
 
 Delivers context for all watchers that match the given file pattern. Use before starting work on a specific area.
+
+#### Export watchers to YAML
+
+```bash
+driftless context export
+driftless context export --dir .driftless/watchers
+```
+
+Writes one `.yaml` file per watcher to the specified directory (default: `.driftless/watchers/`). Creates the directory if it doesn't exist. Commit the output to your repo so context travels with the code.
+
+```
+Exported 12 watchers → .driftless/watchers/
+```
+
+#### Import watchers from YAML
+
+```bash
+driftless context import
+driftless context import --dir .driftless/watchers
+```
+
+Reads all `*.yaml` files from the directory and creates or updates watchers in Cloud. Use to bootstrap a fresh workspace or restore context after a Cloud migration.
+
+```
+  ✓ billing (updated)
+  ✓ auth (created)
+  ✓ database (updated)
+```
 
 #### Delete a watcher
 
