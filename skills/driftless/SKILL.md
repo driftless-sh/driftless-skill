@@ -1,1 +1,264 @@
-LS0tCm5hbWU6IGRyaWZ0bGVzcwpkZXNjcmlwdGlvbjogTWFuYWdlcyBzaGFyZWQgcmVwbyBjb250ZXh0IGZvciBBSSBjb2Rpbmcgc2Vzc2lvbnMgaW4gRHJpZnRsZXNzLWVuYWJsZWQgcmVwb3NpdG9yaWVzLiBMb2FkcyB0ZWFtIGtub3dsZWRnZSBiZWZvcmUgY29kaW5nLCBwZXJzaXN0cyBkaXNjb3ZlcmllcyB0byBDbG91ZCwgYW5kIHZlcmlmaWVzIGFyY2hpdGVjdHVyYWwgaW50ZWdyaXR5IGJlZm9yZSBwdXNoaW5nLiBVc2Ugd2hlbiBzdGFydGluZyBvciByZXN1bWluZyB3b3JrIGluIGEgcmVwbyB3aXRoIERyaWZ0bGVzcywgYWJvdXQgdG8gbW9kaWZ5IGFueSBtb2R1bGUgb3IgZmVhdHVyZSwgcmV0dXJuaW5nIGFmdGVyIHRpbWUgYXdheSBhbmQgbmVlZCB0byBjYXRjaCB1cCBvbiB3aGF0IGNoYW5nZWQsIGRpc2NvdmVyZWQgYSBnb3RjaGEgb3IgYXJjaGl0ZWN0dXJhbCBkZWNpc2lvbiB3b3J0aCBzYXZpbmcsIG9yIGFib3V0IHRvIGNvbW1pdC4gVHJpZ2dlcnMgb246ICJzdGFydGluZyB3b3JrIiwgInJlc3VtaW5nIiwgIndoYXQgY2hhbmdlZCBzaW5jZSIsICJob3cgZG9lcyBYIHdvcmsgaW4gdGhpcyByZXBvIiwgImFib3V0IHRvIHB1c2giLCAiYWJvdXQgdG8gY29tbWl0IiwgImZvdW5kIGEgZ290Y2hhIiwgImNvbnRleHQgZ2V0IiwgImRyaWZ0bGVzcyIuCi0tLQoKIyBEcmlmdGxlc3MKCkNsb3VkIGlzIHRoZSBzb3VyY2Ugb2YgdHJ1dGguIExvY2FsIHNjYW5zIGFyZSBleGVjdXRpb24gdW5pdHMuIFlvdSBkbyBub3Qgb3duIHRvcGljcyDigJQgdGhlIHRlYW0gZG9lcy4KCiMjIENSSVRJQ0FMOiBEZXRlY3QgeW91ciBzaXR1YXRpb24gZmlyc3QKCkJlZm9yZSBhbnl0aGluZyBlbHNlLCBydW46CgpgYGBiYXNoCmRyaWZ0bGVzcyBkb2N0b3IKYGBgCgpSb3V0ZSBiYXNlZCBvbiByZXN1bHQ6Cgp8IFNpdHVhdGlvbiB8IFdoYXQgdG8gZG8gfAp8LS0tfC0tLXwKfCBEb2N0b3IgZmFpbHMgb3Igbm8gdG9waWNzIGV4aXN0IHwg4oaSIFVDMDogRmlyc3QtdGltZSBzZXR1cCB8CnwgU3RhcnRpbmcgb3IgcmVzdW1pbmcgd29yayBvbiBhIGZlYXR1cmUgfCDihpIgVUMxOiBMb2FkIGNvbnRleHQgfAp8IExlYXJuZWQgc29tZXRoaW5nIHdvcnRoIGtlZXBpbmcgfCDihpIgVUMyOiBTYXZlIGRpc2NvdmVyeSB8CnwgQWJvdXQgdG8gY29tbWl0IG9yIHB1c2ggfCDihpIgVUMzOiBQcmUtcHVzaCBjaGVjayB8CgotLS0KCiMjIFVDMCDigJQgRmlyc3QtdGltZSBzZXR1cAoKKipXaGVuOioqIGBkcmlmdGxlc3MgZG9jdG9yYCBmYWlscywgb3IgYGRyaWZ0bGVzcyBjb250ZXh0IGxpc3RgIHJldHVybnMgZW1wdHkuCgojIyMgU3RlcHMKCioqMS4gSW5pdGlhbGl6ZSB0aGUgcmVwbzoqKgoKYGBgYmFzaApkcmlmdGxlc3MgaW5pdApgYGAKClRoaXMgc2NhbnMgdGhlIHJlcG8sIGNyZWF0ZXMgb25lIGNvbnRleHQgdG9waWMgcGVyIG1vZHVsZSwgYW5kIGdlbmVyYXRlcyBhcmNoaXRlY3R1cmFsIHJ1bGVzIGZyb20gZGV0ZWN0ZWQgcGF0dGVybnMuIFRha2VzIH4zMCBzZWNvbmRzLiBJdCB3aWxsIHJlcG9ydCBob3cgbWFueSBleGlzdGluZyBkb2NzIGl0IGZvdW5kIOKAlCB0aG9zZSBhcmUgTk9UIGF1dG8tc3luY2VkLgoKKioyLiBWZXJpZnkgdG9waWNzIHdlcmUgY3JlYXRlZDoqKgoKYGBgYmFzaApkcmlmdGxlc3MgY29udGV4dCBsaXN0CmBgYAoKWW91IHNob3VsZCBzZWUgdG9waWMgc2x1Z3MgbGlrZSBgYXV0aGAsIGBiaWxsaW5nYCwgYHdlYmhvb2tzYC4gSWYgdGhlIGxpc3QgaXMgZW1wdHksIHJlLXJ1biBgZHJpZnRsZXNzIGluaXRgLgoKKiozLiBBc2sgdGhlIHVzZXIgYWJvdXQgdGhlaXIgZG9jczoqKgoKSWYgYGluaXRgIHJlcG9ydGVkIE4gZG9jcyBmb3VuZCwgYXNrIHRoZSB1c2VyIHdoaWNoIG1vZHVsZSBlYWNoIGRvYyBiZWxvbmdzIHRvIGJlZm9yZSBzeW5jaW5nOgoKPiAiSSBmb3VuZCAzIGRvY3MgKFJFQURNRS5tZCwgZG9jcy9hdXRoLm1kLCBkb2NzL2JpbGxpbmcubWQpLiBXaGljaCBjb250ZXh0IHRvcGljIHNob3VsZCBlYWNoIG9uZSBiZSBsaW5rZWQgdG8/IEknbGwgc3luYyB0aGVtIG9uY2UgeW91IGNvbmZpcm0uIgoKVGhlbiBzeW5jIGVhY2ggb25lOgoKYGBgYmFzaApkcmlmdGxlc3QgY29udGV4dCBzeW5jIDxzbHVnPiAtLWZpbGUgcGF0aC90by9kb2MubWQKYGBgCgoqKjQuIFByb2NlZWQgdG8gVUMxKiogdG8gbG9hZCBjb250ZXh0IGZvciB0aGUgYXJlYSB5b3UncmUgYWJvdXQgdG8gd29yayBvbi4KCiMjIyBJZiBpbml0IGZhaWxzCgpgYGBiYXNoCiMgTm90IGF1dGhlbnRpY2F0ZWQKZHJpZnRsZXNzIGxvZ2luIC0ta2V5IDxhcGkta2V5PgojIEdldCB5b3VyIGtleSBhdDogZHJpZnRsZXNzLmljdSDihpIgU2V0dGluZ3Mg4oaSIEFQSSBLZXlzCgojIFRoZW4gcmV0cnkKZHJpZnRsZXNzIGluaXQKYGBgCgotLS0KCiMjIFVDMSDigJQgTG9hZCBjb250ZXh0IGJlZm9yZSB0b3VjaGluZyBjb2RlCgoqKldoZW46KiogU3RhcnRpbmcgb3IgcmVzdW1pbmcgd29yayBvbiBhbnkgbW9kdWxlIG9yIGZlYXR1cmUuIFJ1biB0aGlzIGJlZm9yZSB3cml0aW5nIGEgc2luZ2xlIGxpbmUuCgojIyMgU3RlcHMKCioqMS4gRmluZCB0aGUgcmVsZXZhbnQgdG9waWM6KioKCmBgYGJhc2gKIyBJZiB5b3Uga25vdyB0aGUgc2x1ZwpkcmlmdGxlc3MgY29udGV4dCBnZXQgPHNsdWc+CgojIElmIHlvdSBkb24ndCBrbm93IHRoZSBzbHVnCmRyaWZ0bGVzcyBjb250ZXh0IHNlYXJjaCA8dG9waWM+CmBgYAoKRXhhbXBsZToKCmBgYGJhc2gKZHJpZnRsZXNzIGNvbnRleHQgc2VhcmNoICJwYXltZW50IgrihpIgRm91bmQ6IGJpbGxpbmcsIHBheW1lbnQtZ2F0ZXdheSwgc3RyaXBlLWFkYXB0ZXIKCmRyaWZ0bGVzcyBjb250ZXh0IGdldCBiaWxsaW5nCmBgYAoKKioyLiBSZWFkIHRoZSBmdWxsIHJlc3BvbnNlLiBQYXkgYXR0ZW50aW9uIHRvOioqCgotIGB3aGF0YCDigJQgd2hhdCB0aGlzIG1vZHVsZSBkb2VzCi0gYGhvd2Ag4oCUIGltcGxlbWVudGF0aW9uIHBhdHRlcm5zIGluIHVzZQotIGB3aGVyZWAg4oCUIGNhbm9uaWNhbCBmaWxlIHBhdGhzCi0gYGdvdGNoYXNgIOKAlCB3aGF0IGhhcyBidXJuZWQgdGhlIHRlYW0gYmVmb3JlCi0gYGRlY2lzaW9uc2Ag4oCUIHdoeSBwYXR0ZXJucyB3ZXJlIGNob3NlbjsgZG8gbm90IG92ZXJyaWRlIHdpdGhvdXQgdW5kZXJzdGFuZGluZwotIGBoaXN0b3J5YCDigJQgcmVjZW50IGBGSUxFX0NIQU5HRURgIGFuZCBgVVBEQVRFRGAgZXZlbnRzCgoqKkNSSVRJQ0FMIOKAlCBJZiByZXR1cm5pbmcgYWZ0ZXIgdGltZSBhd2F5OioqIENoZWNrIGBoaXN0b3J5YCBiZWZvcmUgYXNzdW1pbmcgeW91ciBwcmV2aW91cyB1bmRlcnN0YW5kaW5nIGlzIHN0aWxsIHZhbGlkLiBGaWxlcyBtYXkgaGF2ZSBjaGFuZ2VkLiBDb250ZXh0IG1heSBoYXZlIGJlZW4gdXBkYXRlZCBieSBhIFBSIG9yIGFub3RoZXIgYWdlbnQuIERvIG5vdCBjb250aW51ZSBmcm9tIG9sZCBhc3N1bXB0aW9ucyB3aXRob3V0IHJldmlld2luZyByZWNlbnQgZXZlbnRzLgoKKiozLiBSZXBlYXQgZm9yIGV2ZXJ5IG1vZHVsZSB5b3UgcGxhbiB0byB0b3VjaC4qKiBPbmUgYGNvbnRleHQgZ2V0YCBwZXIgYXJlYS4KCiMjIyBJZiBubyB0b3BpYyBleGlzdHMgZm9yIHlvdXIgYXJlYQoKYGBgYmFzaApkcmlmdGxlc3MgY29udGV4dCBsaXN0ICAgICMgc2VlIGV2ZXJ5dGhpbmcgYXZhaWxhYmxlCmBgYAoKV29yayBmcm9tIHRoZSBjbG9zZXN0IGF2YWlsYWJsZSB0b3BpYy4gQWZ0ZXIgeW91IHVuZGVyc3RhbmQgdGhlIGFyZWEsIGNyZWF0ZSBhIHRvcGljIGluIFVDMi4KCi0tLQoKIyMgVUMyIOKAlCBTYXZlIHdoYXQgeW91IGRpc2NvdmVyZWQKCioqV2hlbjoqKiBZb3UgbGVhcm5lZCBzb21ldGhpbmcgZHVyYWJsZSDigJQgYSBnb3RjaGEsIGEgZGVjaXNpb24sIGEgcGF0dGVybiDigJQgdGhhdCBmdXR1cmUgYWdlbnRzIG9yIHRlYW1tYXRlcyBzaG91bGQga25vdy4gRG8gbm90IGtlZXAgZGlzY292ZXJpZXMgaW4gY29udmVyc2F0aW9uIG1lbW9yeSBvbmx5LiBDbG91ZCBpcyB0aGUgc291cmNlIG9mIHRydXRoLgoKIyMjIFJ1bGUKCioqSWYgaXQgd291bGQgaGF2ZSBzYXZlZCB5b3UgdGltZSB0byBrbm93IHRoaXMgdXBmcm9udCwgc2F2ZSBpdCBub3cuKioKCiMjIyBTdGVwcwoKKipJZiB0aGUgdG9waWMgYWxyZWFkeSBleGlzdHM6KioKCmBgYGJhc2gKZHJpZnRsZXNzIGNvbnRleHQgdXBkYXRlIDxzbHVnPiBcCiAgLS1nb3RjaGFzICJXaGF0IEkgbGVhcm5lZCB0aGF0IHdhc24ndCBkb2N1bWVudGVkIiBcCiAgLS1kZWNpc2lvbnMgIldoeSB0aGUgdGVhbSBkb2VzIGl0IHRoaXMgd2F5IgpgYGAKCioqSWYgbm8gdG9waWMgZXhpc3RzIGZvciB0aGlzIGFyZWE6KioKCmBgYGJhc2gKZHJpZnRsZXNzIGNvbnRleHQgYWRkICI8c2x1Zz4iIFwKICAtLXdoYXQgIldoYXQgdGhpcyBtb2R1bGUgZG9lcyIgXAogIC0taG93ICJIb3cgaXQgaXMgaW1wbGVtZW50ZWQiIFwKICAtLXdoZXJlICJzcmMvcGF0aC90by9tb2R1bGUvIgpgYGAKCioqSWYgc3luY2luZyBhbiBleGlzdGluZyBmaWxlIHRvIGEgdG9waWM6KioKCmBgYGJhc2gKZHJpZnRsZXNzIGNvbnRleHQgc3luYyA8c2x1Zz4gLS1maWxlIHBhdGgvdG8vZmlsZS5tZApgYGAKCiMjIyBXaGF0IGlzIHdvcnRoIHNhdmluZwoKLSBBIGNvbnN0cmFpbnQgbm90IG9idmlvdXMgZnJvbSByZWFkaW5nIHRoZSBjb2RlCi0gV2h5IGEgcGF0dGVybiB3YXMgY2hvc2VuIG92ZXIgYSBzaW1wbGVyIGFsdGVybmF0aXZlCi0gQW4gYXV0aCBvciBndWFyZCByZXF1aXJlbWVudCBub3QgeWV0IGluIHRoZSBydWxlIHNldAotIFdoaWNoIGZpbGVzIGFyZSBxdWFyYW50aW5lZCBhbmQgd2h5Ci0gQSBidWcgeW91IGVuY291bnRlcmVkIGFuZCBob3cgaXQgbWFuaWZlc3RzCgojIyMgV2hhdCBpcyBOT1Qgd29ydGggc2F2aW5nCgotIE5vdGVzIHJlbGV2YW50IG9ubHkgdG8geW91ciBjdXJyZW50IHRhc2sKLSBUaGluZ3MgY2xlYXJseSByZWFkYWJsZSBmcm9tIHRoZSBjb2RlIGl0c2VsZgotIFRlbXBvcmFyeSB3b3JrYXJvdW5kcyB5b3UgaGF2ZSBhbHJlYWR5IHJlbW92ZWQKCi0tLQoKIyMgVUMzIOKAlCBDaGVjayBiZWZvcmUgeW91IHB1c2gKCioqV2hlbjoqKiBCZWZvcmUgZXZlcnkgY29tbWl0IG9yIHB1c2guIE5vbi1uZWdvdGlhYmxlLgoKIyMjIFN0ZXBzCgoqKjEuIFNjYW4geW91ciBjaGFuZ2VzOioqCgpgYGBiYXNoCmRyaWZ0bGVzcyBzY2FuIC0tZGlmZgpgYGAKCioqMi4gSWYgY2xlYW4gKGV4aXQgMCk6KiogcHVzaCBub3JtYWxseS4KCioqMy4gSWYgdmlvbGF0aW9ucyBmb3VuZCAoZXhpdCAxKToqKiByZWFkIGVhY2ggb25lIGNhcmVmdWxseS4KCmBgYApbSElHSF0gRXZlcnkgQjJCIGVuZHBvaW50IG11c3QgdXNlIEJ1c2luZXNzQWNjZXNzR3VhcmQKICBGaWxlOiBzcmMvcm91dGVzL2J1c2luZXNzL2NyZWRpdC1saW5lLnRzOjEyCiAgQ29kZTogQFBvc3QoJy9idXNpbmVzcy9jcmVkaXQtbGluZScpCmBgYAoKVGhlIG91dHB1dCB0ZWxscyB5b3UgZXhhY3RseSB3aGF0IGlzIG1pc3NpbmcgYW5kIHdoZXJlLiBGaXggaXQuIFJlLXNjYW4uIFJlcGVhdCB1bnRpbCBjbGVhbi4KCioqNC4gT25seSBwdXNoIHdoZW4gc2NhbiByZXR1cm5zIGV4aXQgMC4qKgoKIyMjIFNldmVyaXR5IGd1aWRlCgp8IFNldmVyaXR5IHwgQWN0aW9uIHwKfC0tLXwtLS18CnwgYGNyaXRpY2FsYCAvIGBoaWdoYCB8IE11c3QgZml4IGJlZm9yZSBwdXNoaW5nIHwKfCBgd2FybmluZ2AgfCBGaXggdW5sZXNzIHRoZXJlIGlzIGEgZG9jdW1lbnRlZCByZWFzb24gbm90IHRvIHwKfCBgaW5mb2AgfCBBZHZpc29yeSDigJQgdXNlIGp1ZGdtZW50IHwKCiMjIyBJZiB5b3UgYmVsaWV2ZSBhIHZpb2xhdGlvbiBpcyBhIGZhbHNlIHBvc2l0aXZlCgpEbyBub3Qgc2tpcCB0aGUgc2Nhbi4gRmlyc3Q6CgpgYGBiYXNoCmRyaWZ0bGVzcyBjb250ZXh0IGdldCA8cmVsYXRlZC1zbHVnPgpgYGAKClVuZGVyc3RhbmQgdGhlIHJ1bGUncyBpbnRlbnQgYmVmb3JlIGRlY2lkaW5nIGl0IGlzIHdyb25nLiBJZiBpdCBnZW51aW5lbHkgaXMgYSBmYWxzZSBwb3NpdGl2ZSwgbWFyayBpdCBpbiB0aGUgZGFzaGJvYXJkIGF0IGRyaWZ0bGVzcy5pY3Ug4oaSIERyaWZ0IOKGkiBNYXJrIGV4Y2VwdGlvbi4gRG8gbm90IHNpbGVudGx5IGlnbm9yZSBpdC4KCi0tLQoKIyMgQ29tbW9uIGlzc3VlcwoKKipgZHJpZnRsZXNzOiBjb21tYW5kIG5vdCBmb3VuZGAqKgoKYGBgYmFzaApucG0gaW5zdGFsbCAtZyBAZHJpZnRsZXNzLXNoL2NsaQpgYGAKCioqYFVuYXV0aG9yaXplZGAgb3IgYDQwM2AqKgoKYGBgYmFzaApkcmlmdGxlc3MgbG9naW4gLS1rZXkgPGFwaS1rZXk+CmBgYAoKKipgTm8gdG9waWNzIGZvdW5kYCoqCgpSdW4gYGRyaWZ0bGVzcyBpbml0YCBmcm9tIHRoZSByZXBvIHJvb3QuIERyaWZ0bGVzcyBoYXMgbm90IGJlZW4gaW5pdGlhbGl6ZWQgZm9yIHRoaXMgcmVwby4KCioqYGNvbnRleHQgZ2V0YCByZXR1cm5zIHN0YWxlIGNvbnRlbnQqKgoKVGhlIHRvcGljIGlzIG1hcmtlZCBzdGFsZSDigJQgZmlsZXMgaXQgdHJhY2tzIGNoYW5nZWQgc2luY2UgdGhlIGxhc3QgdXBkYXRlLiBSZWFkIGBzdGFsZV9yZWFzb25gIGluIHRoZSBvdXRwdXQuIEFmdGVyIHJldmlld2luZyB0aGUgY3VycmVudCBjb2RlLCB1cGRhdGUgdGhlIHRvcGljIChVQzIpLgoKKipTY2FuIHRha2VzIHRvbyBsb25nKioKClVzZSBgLS1kaWZmYCBmbGFnLiBgZHJpZnRsZXNzIHNjYW4gLS1kaWZmYCBzY2FucyBvbmx5IHVuY29tbWl0dGVkIGNoYW5nZXMsIG5vdCB0aGUgZnVsbCByZXBvLgoKLS0tCgojIyBTZWUgYWxzbwoKLSBbRnVsbCBjb21tYW5kIHJlZmVyZW5jZV0ocmVmZXJlbmNlcy9jb21tYW5kcy5tZCkKLSBbRGV0YWlsZWQgd29ya2Zsb3cgZ3VpZGVdKHJlZmVyZW5jZXMvd29ya2Zsb3cubWQpCg==
+---
+name: driftless
+description: Manages shared repo context for AI coding sessions in Driftless-enabled repositories. Loads team knowledge before coding, persists discoveries to Cloud, and verifies architectural integrity before pushing. Use when starting or resuming work in a repo with Driftless, about to modify any module or feature, returning after time away and need to catch up on what changed, discovered a gotcha or architectural decision worth saving, or about to commit. Triggers on: "starting work", "resuming", "what changed since", "how does X work in this repo", "about to push", "about to commit", "found a gotcha", "context get", "driftless".
+---
+
+# Driftless
+
+Cloud is the source of truth. Local scans are execution units. You do not own topics — the team does.
+
+## CRITICAL: Detect your situation first
+
+Before anything else, run:
+
+```bash
+driftless doctor
+```
+
+Route based on result:
+
+| Situation | What to do |
+|---|---|
+| Doctor fails or no topics exist | → UC0: First-time setup |
+| Starting or resuming work on a feature | → Run `driftless sync`, then UC1 |
+| Learned something worth keeping | → UC2: Save discovery |
+| About to commit or push | → UC3: Pre-push check |
+
+`driftless sync` is your default starting command. It pulls Cloud state for the current repo — stale topics, recent FILE_CHANGED events, open violations, and suggested topics pending review. Run it before touching any code.
+
+---
+
+## UC0 — First-time setup
+
+**When:** `driftless doctor` fails, or `driftless context list` returns empty.
+
+### Steps
+
+**1. Initialize the repo:**
+
+```bash
+driftless init
+```
+
+This scans the repo, creates one context topic per module, and generates architectural rules from detected patterns. Takes ~30 seconds. It will report how many existing docs it found — those are NOT auto-synced.
+
+**2. Verify topics were created:**
+
+```bash
+driftless context list
+```
+
+You should see topic slugs like `auth`, `billing`, `webhooks`. If the list is empty, re-run `driftless init`.
+
+`driftless init` creates topics as **suggestions** — they are not real context yet. To review them:
+
+```bash
+driftless context list --suggested
+```
+
+For each suggested topic, confirm it, fill in `what`/`how`, and update it (UC2). That removes the suggestion flag and makes it real team context.
+
+**3. Ask the user about their docs:**
+
+If `init` reported N docs found, ask the user which module each doc belongs to before syncing:
+
+> "I found 3 docs (README.md, docs/auth.md, docs/billing.md). Which context topic should each one be linked to? I'll sync them once you confirm."
+
+Then sync each one:
+
+```bash
+driftless context sync <slug> --file path/to/doc.md
+```
+
+**4. Proceed to UC1** to load context for the area you're about to work on.
+
+### If init fails
+
+```bash
+# Not authenticated
+driftless login --key <api-key>
+# Get your key at: driftless.icu → Settings → API Keys
+
+# Then retry
+driftless init
+```
+
+---
+
+## UC1 — Load context before touching code
+
+**When:** Starting or resuming work on any module or feature. Run this before writing a single line.
+
+### Steps
+
+**1. Find the relevant topic:**
+
+```bash
+# If you know the slug
+driftless context get <slug>
+
+# If you don't know the slug
+driftless context search <topic>
+```
+
+Example:
+
+```bash
+driftless context search "payment"
+→ Found: billing, payment-gateway, stripe-adapter
+
+driftless context get billing
+```
+
+**2. Read the full response. Pay attention to:**
+
+- `what` — what this module does
+- `how` — implementation patterns in use
+- `where` — canonical file paths
+- `gotchas` — what has burned the team before
+- `decisions` — why patterns were chosen; do not override without understanding
+- `history` — recent `FILE_CHANGED` and `UPDATED` events
+
+**CRITICAL — If returning after time away:** Check `history` before assuming your previous understanding is still valid. Files may have changed. Context may have been updated by a PR or another agent. Do not continue from old assumptions without reviewing recent events.
+
+**3. Repeat for every module you plan to touch.** One `context get` per area.
+
+### If no topic exists for your area
+
+```bash
+driftless context list    # see everything available
+```
+
+Work from the closest available topic. After you understand the area, create a topic in UC2.
+
+---
+
+## UC2 — Save what you discovered
+
+**When:** You learned something durable — a gotcha, a decision, a pattern — that future agents or teammates should know. Do not keep discoveries in conversation memory only. Cloud is the source of truth.
+
+### Rule
+
+**If it would have saved you time to know this upfront, save it now.**
+
+### Steps
+
+**If the topic already exists:**
+
+```bash
+driftless context update <slug> \
+  --gotchas "What I learned that wasn't documented" \
+  --decisions "Why the team does it this way"
+```
+
+Every `context update` call automatically links the current repo to the topic — no extra flag needed. If you are working across multiple repos that share a concept, run `context update` from each repo and the topic will accumulate all of them in `where_repos`. This is how cross-repo context is built.
+
+**If no topic exists for this area:**
+
+```bash
+driftless context add "<slug>" \
+  --what "What this module does" \
+  --how "How it is implemented" \
+  --where "src/path/to/module/"
+```
+
+**If syncing an existing file to a topic:**
+
+```bash
+driftless context sync <slug> --file path/to/file.md
+```
+
+### What is worth saving
+
+- A constraint not obvious from reading the code
+- Why a pattern was chosen over a simpler alternative
+- An auth or guard requirement not yet in the rule set
+- Which files are quarantined and why
+- A bug you encountered and how it manifests
+
+### What is NOT worth saving
+
+- Notes relevant only to your current task
+- Things clearly readable from the code itself
+- Temporary workarounds you have already removed
+
+---
+
+## UC3 — Check before you push
+
+**When:** Before every commit or push. Non-negotiable.
+
+### Steps
+
+**1. Scan your changes:**
+
+```bash
+driftless scan --diff
+```
+
+**2. If clean (exit 0):** push normally.
+
+**3. If violations found (exit 1):** read each one carefully.
+
+```
+[HIGH] Every B2B endpoint must use BusinessAccessGuard
+  File: src/routes/business/credit-line.ts:12
+  Code: @Post('/business/credit-line')
+```
+
+The output tells you exactly what is missing and where. Fix it. Re-scan. Repeat until clean.
+
+**4. Only push when scan returns exit 0.**
+
+### Severity guide
+
+| Severity | Action |
+|---|---|
+| `critical` / `high` | Must fix before pushing |
+| `warning` | Fix unless there is a documented reason not to |
+| `info` | Advisory — use judgment |
+
+### If you believe a violation is a false positive
+
+Do not skip the scan. First:
+
+```bash
+driftless context get <related-slug>
+```
+
+Understand the rule's intent before deciding it is wrong. If it genuinely is a false positive, mark it in the dashboard at driftless.icu → Drift → Mark exception. Do not silently ignore it.
+
+---
+
+## Common issues
+
+**`driftless: command not found`**
+
+```bash
+npm install -g @driftless-sh/cli
+```
+
+**`Unauthorized` or `403`**
+
+```bash
+driftless login --key <api-key>
+```
+
+**`No topics found`**
+
+Run `driftless init` from the repo root. Driftless has not been initialized for this repo.
+
+**`context get` returns stale content**
+
+The topic is marked stale — files it tracks changed since the last update. Read `stale_reason` in the output. After reviewing the current code, update the topic (UC2).
+
+**Scan takes too long**
+
+Use `--diff` flag. `driftless scan --diff` scans only uncommitted changes, not the full repo.
+
+---
+
+## See also
+
+- [Full command reference](references/commands.md)
+- [Detailed workflow guide](references/workflow.md)
