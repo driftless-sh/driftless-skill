@@ -1,47 +1,51 @@
 # Driftless — Agent Skill
 
-Shared codebase memory layer for AI engineering teams.
+Teaches AI agents (Claude Code, Codex, Cursor, and others) how to use Driftless to load team context before coding, persist discoveries, and verify integrity before pushing.
 
 ## Install
 
 ```bash
-npx skills add joseluistello/driftless-skill
+npx skills add driftless-sh/driftless-skill
 ```
-
-Or manually clone into your skills directory.
 
 ## What it does
 
-Teaches AI agents (Claude Code, Codex, Cursor) to:
+Without this skill, every agent session starts from zero — re-discovering how auth works, what the billing constraints are, why a pattern was chosen. With it, agents load accumulated team knowledge before touching code and save what they learn back to Cloud.
 
-1. **Load context** before coding — `driftless context get <feature>`
-2. **Scan diffs** before pushing — `driftless scan --diff`
-3. **Document discoveries** — `driftless context add "name" --what "..."`
+The skill routes the agent through four phases based on the current situation:
 
-Agents follow a strict loop: load → implement → scan → fix → push.
+| Phase | When | Action |
+|---|---|---|
+| **UC0 — Init** | Repo has no Driftless context yet | `driftless init` |
+| **UC1 — Load context** | Starting or resuming work | `driftless context get <slug>` |
+| **UC2 — Save discovery** | Learned a gotcha or decision | `driftless context update <slug>` |
+| **UC3 — Pre-push check** | About to commit | `driftless scan --diff` |
 
-## Quick start
+## Requirements
+
+- [Driftless CLI](https://www.npmjs.com/package/@driftless-sh/cli) installed and authenticated
+- A Driftless workspace with at least one connected repo
 
 ```bash
 npm install -g @driftless-sh/cli
-driftless login --key drift_xxx
-driftless init
+driftless login --key <api-key>   # get key at driftless.icu → Settings → API Keys
+driftless init                     # run once per repo
 ```
 
 ## Structure
 
 ```
 skills/driftless/
-├── SKILL.md                  # Main skill definition (loaded by agents)
+├── SKILL.md              # Main skill definition — loaded by agents
 └── references/
-    ├── commands.md           # CLI command reference
-    ├── workflow.md           # Agent workflow guide
-    └── cloud.md              # Cloud architecture overview
+    ├── commands.md       # Full CLI command reference
+    ├── workflow.md       # Detailed workflow guide
+    └── cloud.md          # Cloud architecture overview
 ```
 
 ## Links
 
+- **Dashboard:** https://driftless.icu
 - **Docs:** https://driftless.icu/docs
-- **API:** https://api.driftless.icu/api/v1
-- **CLI:** https://www.npmjs.com/package/@driftless-sh/cli
+- **CLI on npm:** https://www.npmjs.com/package/@driftless-sh/cli
 - **License:** MIT
