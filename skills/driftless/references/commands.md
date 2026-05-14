@@ -1,1 +1,279 @@
-IyBEcmlmdGxlc3MgQ0xJIOKAlCBDb21tYW5kIFJlZmVyZW5jZQoKIyMgSW5zdGFsbGF0aW9uCgpgYGBiYXNoCm5wbSBpbnN0YWxsIC1nIEBkcmlmdGxlc3Mtc2gvY2xpCmBgYAoKIyMgQXV0aGVudGljYXRpb24KCkRyaWZ0bGVzcyBDTEkgdXNlcyBBUEkga2V5cy4gTm8gYnJvd3NlciBPQXV0aC4gTm8gc2Vzc2lvbiBtYW5hZ2VtZW50LgoKKipQcmlvcml0eSBvcmRlcjoqKgoxLiBgRFJJRlRMRVNTX0FQSV9LRVlgIGVudmlyb25tZW50IHZhcmlhYmxlCjIuIGB+Ly5kcmlmdGxlc3MvY29uZmlnLmpzb25gIGZpbGUKCmBgYGJhc2gKIyBTYXZlIGtleSB0byBjb25maWcgZmlsZQpkcmlmdGxlc3MgbG9naW4gLS1rZXkgZHJpZnRfeHh4CgojIE9yIHZpYSBlbnZpcm9ubWVudCB2YXJpYWJsZSAocmVjb21tZW5kZWQgZm9yIENJIGFuZCBhZ2VudHMpCmV4cG9ydCBEUklGVExFU1NfQVBJX0tFWT1kcmlmdF94eHgKYGBgCgpHZXQgeW91ciBBUEkga2V5IGF0IGRyaWZ0bGVzcy5pY3UgJnJhcXVvOyBTZXR0aW5ncyAmcmFxdW87IEFQSSBLZXlzLgoKLS0tCgojIyBDb21tYW5kcwoKIyMjIGBkcmlmdGxlc3MgZG9jdG9yYAoKQ2hlY2tzIHRoYXQgdGhlIGVudmlyb25tZW50IGlzIGZ1bGx5IGNvbmZpZ3VyZWQgYmVmb3JlIGRvaW5nIGFueXRoaW5nIGVsc2UuCgpgYGBiYXNoCmRyaWZ0bGVzcyBkb2N0b3IKYGBgCgpWZXJpZmllczogQ0xJIGF1dGgsIEFQSSBjb25uZWN0aXZpdHksIGdpdCB3b3Jrc3BhY2UsIHJlcG8gY29ubmVjdGlvbiwgYmFzZWxpbmUsIEFHRU5UUy5tZCwgR2l0SHViIEFwcC4KClJ1biB0aGlzIGZpcnN0IHdoZW4gc3RhcnRpbmcgaW4gYSBuZXcgZW52aXJvbm1lbnQgb3IgZGVidWdnaW5nIGEgYnJva2VuIHNldHVwLgoKLS0tCgojIyMgYGRyaWZ0bGVzcyBpbml0YAoKQ29ubmVjdHMgYSByZXBvIHRvIERyaWZ0bGVzcyBDbG91ZCBhbmQgYm9vdHN0cmFwcyBjb250ZXh0IGZyb20gd2hhdCBhbHJlYWR5IGV4aXN0cy4gUnVuIG9uY2UgcGVyIHJlcG8gZnJvbSB0aGUgcmVwbyByb290LgoKYGBgYmFzaApkcmlmdGxlc3MgaW5pdApgYGAKCldoYXQgaXQgZG9lczoKMS4gRGV0ZWN0cyBnaXQgcmVtb3RlIOKGkiBmaW5kcyBvciBjcmVhdGVzIHdvcmtzcGFjZSArIHJlcG8gcmVjb3JkCjIuIFNjYW5zIHRoZSBjb2RlYmFzZSDigJIgYnVpbGRzIGNvbXBvbmVudCBtYXAgKGNvbnRyb2xsZXJzLCBzZXJ2aWNlcywgZ3VhcmRzLCBtb2R1bGVzLCBEVE9zKQozLiBVcGxvYWRzIGJhc2VsaW5lIHRvIENsb3VkCjQuIEdlbmVyYXRlcyBhcmNoaXRlY3R1cmFsIHJ1bGVzIGZyb20gZGV0ZWN0ZWQgcGF0dGVybnMKNS4gQ3JlYXRlcyBvbmUgY29udGV4dCB3YXRjaGVyIHBlciBtb2R1bGUgKGBjcmVhdGVkX2J5OiBkcmlmdGxlc3MtaW5pdGApCjYuIERldGVjdHMgZXhpc3RpbmcgZG9jcyBhbmQgcmVwb3J0cyB0aGVtIC0tIGRvZXMgTk9UIGF1dG8tc3luYyB0aGVtIChzeW5jaW5nIGlzIGFuIGludGVudGlvbmFsIGFnZW50IGFjdGlvbikKNy4gSW5zdGFsbHMgdGhlIERyaWZ0bGVzcyBza2lsbCBpbnRvIENMQVVERS5tZCBhbmQgQUdFTlRTLm1kCgotLS0KCiMjIyBgZHJpZnRsZXNzIHNjYW5gCgpTY2FucyBsb2NhbCBjaGFuZ2VzIGFnYWluc3QgQ2xvdWQgcnVsZXMuIEV4aXRzIGAwYCBpZiBjbGVhbiwgYDFgIGlmIHZpb2xhdGlvbnMgZm91bmQuCgpgYGBiYXNoCiMgU2NhbiBzdGFnZWQgKyB1bmNvbW1pdHRlZCBjaGFuZ2VzCmRyaWZ0bGVzcyBzY2FuCgojIFNjYW4gb25seSB1bmNvbW1pdHRlZCBjaGFuZ2VzIChwcmUtcHVzaCBzdGFuZGFyZCkKZHJpZnRsZXNzIHNjYW4gLS1kaWZmCgojIFByZXZpZXcgd2hhdCB3b3VsZCBiZSByZXBvcnRlZCB3aXRob3V0IHdyaXRpbmcgYW55dGhpbmcKZHJpZnRsZXNzIHNjYW4gLS1kcnktcnVuCmBgYAoKLS0tCgojIyMgYGRyaWZ0bGVzcyBjb250ZXh0YAoKUXVlcnkgYW5kIG1hbmFnZSBjb250ZXh0IHRvcGljcyDigJQgdGhlIHRlYW0ncyBzaGFyZWQgcmVwbyBrbm93bGVkZ2UuCgojIyMjIExpc3QgYWxsIHRvcGljcwoKYGBgYmFzaApkcmlmdGxlc3MgY29udGV4dCBsaXN0CmBgYAoKIyMjIyBHZXQgc3BlY2lmaWMgY29udGV4dAoKYGBgYmFzaApkcmlmdGxlc3MgY29udGV4dCBnZXQgPHNsdWc+CmBgYAoKUmV0dXJuczogYHdoYXRgLCBgaG93YCwgYHdoZXJlYCwgYHVzZWRfYnlgLCBgZ290Y2hhc2AsIGBkZWNpc2lvbnNgLCBgaGlzdG9yeWAgKHJlY2VudCBldmVudHMpLgoKIyMjIyBTZWFyY2ggYnkgdG9waWMKCmBgYGJhc2gKZHJpZnRsZXNzIGNvbnRleHQgc2VhcmNoIDxxdWVyeT4KYGBgCgojIyMjIENyZWF0ZSBhIGNvbnRleHQgdG9waWMKCmBgYGJhc2gKZHJpZnRsZXNzIGNvbnRleHQgYWRkICI8c2x1Zz4iIFwKICAtLXdoYXQgIldoYXQgdGhpcyBtb2R1bGUgZG9lcyIgXAogIC0taG93ICJIb3cgaXQgaXMgaW1wbGVtZW50ZWQiIFwKICAtLXdoZXJlICJzcmMvcGF0aC90by9tb2R1bGUvIiBcCiAgLS1nb3RjaGFzICJXaGF0IHRvIHdhdGNoIG91dCBmb3IiIFwKICAtLWRlY2lzaW9ucyAiV2h5IGl0IHdvcmtzIHRoaXMgd2F5IgpgYGAKCiMjIyMgVXBkYXRlIGFuIGV4aXN0aW5nIHRvcGljCgpgYGBiYXNoCmRyaWZ0bGVzcyBjb250ZXh0IHVwZGF0ZSA8c2x1Zz4gXAogIC0tZ290Y2hhcyAiTmV3IGdvdGNoYSBkaXNjb3ZlcmVkIiBcCiAgLS1kZWNpc2lvbnMgIkRlY2lzaW9uIG1hZGUgaW4gbGFzdCBQUiIKYGBgCgojIyMjIFN5bmMgYSBkb2MgdG8gYSBjb250ZXh0IHRvcGljCgpgYGBiYXNoCmRyaWZ0bGVzcyBjb250ZXh0IHN5bmMgPHNsdWc+IC0tZG9jIHBhdGgvdG8vZmlsZS5tZApgYGAKClVwbG9hZHMgdGhlIGZ1bGwgY29udGVudCBvZiB0aGUgZG9jIHRvIENsb3VkIGFuZCBsaW5rcyBpdCB0byB0aGUgdG9waWMuIFdoZW4gZmlsZXMgdGhlIHRvcGljIHRyYWNrcyBjaGFuZ2UsIERyaWZ0bGVzcyBrbm93cyBleGFjdGx5IHdoaWNoIGRvYyBpcyBvdXQgb2Ygc3luYy4KCiMjIyMgTG9hZCBjb250ZXh0IGZvciBzcGVjaWZpYyBmaWxlcwoKYGBgYmFzaApkcmlmdGxlc3MgY29udGV4dCBsb2FkIC0tZmlsZXMgInNyYy9hdXRoLyoqIgpgYGAKCkRlbGl2ZXJzIGZ1bGwgY29udGVudCBmb3IgYWxsIGNvbnRleHQgdG9waWNzIHRoYXQgbWF0Y2ggdGhlIGdpdmVuIGZpbGUgcGF0dGVybi4gVXNlIGJlZm9yZSBzdGFydGluZyB3b3JrIG9uIGEgc3BlY2lmaWMgYXJlYS4KCiMjIyMgRXhwb3J0IHRvcGljcyB0byBZQU1MCgpgYGBiYXNoCmRyaWZ0bGVzcyBjb250ZXh0IGV4cG9ydApkcmlmdGxlc3MgY29udGV4dCBleHBvcnQgLS1kaXIgLmRyaWZ0bGVzcy93YXRjaGVycwpgYGAKCldyaXRlcyBvbmUgYC55YW1sYCBmaWxlIHBlciB0b3BpYyB0byB0aGUgc3BlY2lmaWVkIGRpcmVjdG9yeS4gQ29tbWl0IHRoZSBvdXRwdXQgc28gY29udGV4dCB0cmF2ZWxzIHdpdGggdGhlIGNvZGUuCgojIyMjIEltcG9ydCB0b3BpY3MgZnJvbSBZQU1MCgpgYGBiYXNoCmRyaWZ0bGVzcyBjb250ZXh0IGltcG9ydApkcmlmdGxlc3MgY29udGV4dCBpbXBvcnQgLS1kaXIgLmRyaWZ0bGVzcy93YXRjaGVycwpgYGAKCiMjIyMgRGVsZXRlIGEgdG9waWMKCmBgYGJhc2gKZHJpZnRsZXNzIGNvbnRleHQgZGVsZXRlIDxzbHVnPgpgYGAKCi0tLQoKIyMjIGBkcmlmdGxlc3Mgc2Vzc2lvbmAKCkJyYWNrZXRzIGEgd29ya2luZyBzZXNzaW9uIGZvciBhZ2VudHMuCgpgYGBiYXNoCiMgU3RhcnQgYSBzZXNzaW9uIOKAlCBsb2FkcyByZWxldmFudCBjb250ZXh0LCBzaG93cyByZWNlbnQgZXZlbnRzCmRyaWZ0bGVzcyBzZXNzaW9uIHN0YXJ0CgojIFN0YXJ0IHdpdGggc3BlY2lmaWMgZmlsZXMgaW4gc2NvcGUKZHJpZnRsZXNzIHNlc3Npb24gc3RhcnQgLS1maWxlcyAic3JjL2JpbGxpbmcvKioiCgojIEVuZCBzZXNzaW9uIOKAlCBzY2FucyBkaWZmLCByZXBvcnRzIHZpb2xhdGlvbnMsIHN1bW1hcml6ZXMgY29udGV4dCB1cGRhdGVzCmRyaWZ0bGVzcyBzZXNzaW9uIGVuZApgYGAKCi0tLQoKIyMjIGBkcmlmdGxlc3MgaW5zdGFsbC1za2lsbGAKCldyaXRlcyB0aGUgRHJpZnRsZXNzIHNraWxsIGludG8gQ0xBVURFLm1kIGFuZCBBR0VOVFMubWQgc28gQUkgYWdlbnRzIHBpY2sgaXQgdXAgYXV0b21hdGljYWxseS4gUnVucyBhdXRvbWF0aWNhbGx5IGF0IHRoZSBlbmQgb2YgYGRyaWZ0bGVzcyBpbml0YC4KCmBgYGJhc2gKZHJpZnRsZXNzIGluc3RhbGwtc2tpbGwKYGBgCgotLS0KCiMjIEVudmlyb25tZW50IHZhcmlhYmxlcwoKfCBWYXJpYWJsZSB8IERlZmF1bHQgfCBEZXNjcmlwdGlvbiB8CnwtLS18LS0tfC0tLXwKfCBgRFJJRlRMRVNTX0FQSV9LRVlgIHwg4oCUIHwgQVBJIGtleSBmb3IgYXV0aGVudGljYXRpb24gfAp8IGBEUklGVExFU1NfQVBJX1VSTGAgfCBgaHR0cDovL2xvY2FsaG9zdDozMDAwL2FwaS92MWAgfCBDbG91ZCBBUEkgZW5kcG9pbnQgfAoKLS0tCgojIyBFeGl0IGNvZGVzCgp8IENvZGUgfCBNZWFuaW5nIHwKfC0tLXwtLS18CnwgYDBgIHwgQ2xlYW4g4oCUIHZpb2xhdGlvbnMsIGNvbW1hbmQgc3VjY2VlZGVkIHwKfCBgMWAgfCBWaW9sYXRpb25zIGZvdW5kIChzY2FuKSBvciBjb21tYW5kIGZhaWxlZCB8Cg==
+# Driftless CLI — Command Reference
+
+## Installation
+
+```bash
+npm install -g @driftless-sh/cli
+```
+
+## Authentication
+
+Driftless CLI uses API keys. No browser OAuth. No session management.
+
+**Priority order:**
+1. `DRIFTLESS_API_KEY` environment variable
+2. `~/.driftless/config.json` file
+
+```bash
+# Save key to config file
+driftless login --key drift_xxx
+
+# Or via environment variable (recommended for CI and agents)
+export DRIFTLESS_API_KEY=drift_xxx
+```
+
+Get your API key at driftless.icu → Settings → API Keys.
+
+---
+
+## Commands
+
+### `driftless doctor`
+
+Checks that the environment is fully configured before doing anything else.
+
+```bash
+driftless doctor
+```
+
+Verifies: CLI auth, API connectivity, git workspace, repo connection, baseline, AGENTS.md, GitHub App.
+
+Run this first when starting in a new environment or debugging a broken setup.
+
+---
+
+### `driftless init`
+
+Connects a repo to Driftless Cloud and bootstraps context from what already exists. Run once per repo from the repo root.
+
+```bash
+driftless init
+```
+
+What it does:
+1. Detects git remote → finds or creates workspace + repo record
+2. Scans the codebase → builds component map (controllers, services, guards, modules, DTOs)
+3. Uploads baseline to Cloud
+4. Generates architectural rules from detected patterns (marked as `auto_suggested`)
+5. Creates one context topic per module as a **suggestion** (`suggested: true`) — not real context yet
+6. Detects existing docs and reports them — does NOT auto-sync them (syncing is an intentional agent action)
+7. Installs the Driftless skill into CLAUDE.md and AGENTS.md
+
+Output example:
+```
+Repository: nippy-tech/profile_nippy_ms
+Workspace: nippy-tech (existing)
+Repo: profile_nippy_ms (connected)
+
+Scanning codebase...
+  Framework:    nestjs
+  Type:         api
+  Auth:         cognito, clerk, jwt, apikey
+  Endpoints:    155
+  Guards:       15
+  Services:     58
+  Modules:      17
+
+Suggested rules:
+  • Every B2B endpoint must use BusinessAccessGuard
+  • Services must not import controllers directly
+
+Done.
+```
+
+---
+
+### `driftless sync`
+
+Pull Cloud state for the current repo. Run this at the start of every session — before touching any code.
+
+```bash
+driftless sync           # Cloud pull for current repo
+driftless sync --json    # machine-readable output
+```
+
+Reports:
+- Stale topics — code changed, context not updated
+- Recent Cloud activity (FILE_CHANGED, UPDATED events)
+- Open violations for this repo
+- Suggested topics from init pending agent review
+
+No local diff. No scan. Pure Cloud state. Use `driftless scan --diff` separately before pushing.
+
+---
+
+### `driftless scan`
+
+Scans local changes against Cloud rules. Exits `0` if clean, `1` if violations found.
+
+```bash
+# Scan staged + uncommitted changes
+driftless scan
+
+# Scan only uncommitted changes (pre-push standard)
+driftless scan --diff
+
+# Preview what would be reported without writing anything
+driftless scan --dry-run
+```
+
+Output (clean):
+```
+Scanning uncommitted changes...
+Clean — no violations detected.
+```
+
+Output (violations):
+```
+2 violation(s) found:
+
+  [HIGH] Every B2B endpoint must use BusinessAccessGuard
+    File: src/routes/business/credit-line.ts:12
+    Code: @Post('/business/credit-line')
+
+  [INFO] Quarantine: app.controller.ts
+    File: src/app.controller.ts:205
+    Code: newMethod() {
+```
+
+Use `exit $?` in CI to gate on the result.
+
+---
+
+### `driftless context`
+
+Query and manage context topics — the team's shared repo knowledge.
+
+#### List all topics
+
+```bash
+driftless context list
+
+# Show init-generated suggestions pending agent review
+driftless context list --suggested
+```
+
+#### Get specific context
+
+```bash
+driftless context get <slug>
+```
+
+Returns: `what`, `how`, `where`, `gotchas`, `decisions`, `history` (recent events).
+
+Example:
+```bash
+driftless context get billing
+```
+
+```
+Name:      billing
+What:      Handles all subscription and payment processing
+How:       BillingModule → BillingService → StripeAdapter. Never call Stripe directly.
+Where:     src/billing/
+Gotchas:   Stripe webhook events must be idempotent — retries happen. Always check event.id before processing.
+Decisions: We use Stripe's customer portal instead of building our own to reduce PCI scope.
+Updated:   2026-05-10 (FILE_CHANGED: src/billing/billing.service.ts)
+```
+
+#### Search by topic
+
+```bash
+driftless context search <query>
+```
+
+Use when you don't know the exact slug.
+
+```bash
+driftless context search "payment"
+→ billing, payment-gateway, stripe-adapter
+```
+
+#### Create a context topic
+
+```bash
+driftless context add "<slug>" \
+  --what "What this module does" \
+  --how "How it is implemented" \
+  --where "src/path/to/module/" \
+  --gotchas "What to watch out for" \
+  --decisions "Why it works this way"
+```
+
+#### Update an existing topic
+
+```bash
+driftless context update <slug> \
+  --gotchas "New gotcha discovered" \
+  --decisions "Decision made in last PR"
+```
+
+Every `context update` call automatically links the current repo to the topic. If the same concept spans multiple repos, run `context update` from each one — the topic accumulates all repos in `where_repos`. No flag needed.
+
+#### Sync a doc to a topic
+
+```bash
+driftless context sync <slug> --doc path/to/file.md
+```
+
+Uploads the full content of the doc to Cloud and links it to the topic. When files the topic tracks change, Driftless knows exactly which doc is out of sync.
+
+#### Load context for specific files
+
+```bash
+driftless context load --files "src/auth/**"
+```
+
+Delivers full content for all context topics that match the given file pattern. Use before starting work on a specific area.
+
+#### Export topics to YAML
+
+```bash
+driftless context export
+driftless context export --dir .driftless/watchers
+```
+
+Writes one `.yaml` file per topic to the specified directory. Commit the output so context travels with the code.
+
+#### Import topics from YAML
+
+```bash
+driftless context import
+driftless context import --dir .driftless/watchers
+```
+
+Reads all `*.yaml` files from the directory and creates or updates topics in Cloud.
+
+#### Delete a topic
+
+```bash
+driftless context delete <slug>
+```
+
+---
+
+### `driftless install-skill`
+
+Writes the Driftless skill into CLAUDE.md and AGENTS.md so AI agents (Claude Code, Cursor, Codex) pick it up automatically. Runs automatically at the end of `driftless init`.
+
+```bash
+driftless install-skill
+```
+
+---
+
+## Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `DRIFTLESS_API_KEY` | — | API key for authentication |
+| `DRIFTLESS_API_URL` | `http://localhost:3000/api/v1` | Cloud API endpoint |
+
+---
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Clean — no violations, command succeeded |
+| `1` | Violations found (scan) or command failed |
