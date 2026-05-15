@@ -40,17 +40,35 @@ Route based on result:
 driftless init
 ```
 
-This scans the repo, creates one context topic per module, and generates architectural rules from detected patterns. Takes ~30 seconds. It will report how many existing docs it found — those are NOT auto-synced.
+This scans the repo, uploads the baseline, and installs the AGENTS.md skill. Takes ~30 seconds. It will report how many existing docs it found — those are NOT auto-synced.
 
-**2. Verify topics were created:**
+**Monorepo?** If your code lives in a subfolder (e.g. `apps/api/src`), pass `--src`:
 
 ```bash
-driftless context list
+driftless init --src apps/api/src
 ```
 
-You should see topic slugs like `auth`, `billing`, `webhooks`. If the list is empty, re-run `driftless init`.
+Git root stays at cwd; scanner starts from the given path.
 
-`driftless init` creates topics as **suggestions** — they are not real context yet. To review them:
+**Want auto-generated topics and rules?** Add `--suggest`:
+
+```bash
+driftless init --suggest
+# or both:
+driftless init --src apps/api/src --suggest
+```
+
+Without `--suggest`, no topics or rules are created — you add them manually in UC2.
+
+**2. Verify setup:**
+
+```bash
+driftless doctor
+```
+
+All checks should be `ok` or `warn`. Fix any `fail` entries before proceeding.
+
+If you ran `--suggest`, view the auto-generated topics:
 
 ```bash
 driftless context list --suggested
@@ -147,9 +165,12 @@ Work from the closest available topic. After you understand the area, create a t
 
 ```bash
 driftless context update <slug> \
-  --gotchas "What I learned that wasn't documented" \
+  --gotcha "What I learned that wasn't documented" \
+  --gotcha "Another gotcha if needed" \
   --decisions "Why the team does it this way"
 ```
+
+You can pass `--gotcha` multiple times — all values are appended without overwriting existing ones.
 
 Every `context update` call automatically links the current repo to the topic — no extra flag needed. If you are working across multiple repos that share a concept, run `context update` from each repo and the topic will accumulate all of them in `where_repos`. This is how cross-repo context is built.
 
