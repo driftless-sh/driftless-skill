@@ -34,11 +34,12 @@ Checks that the environment is fully configured before doing anything else.
 
 ```bash
 driftless doctor
+driftless doctor --json   # machine-readable: { ok, summary, checks[], workspace_diagnostics? }
 ```
 
-Verifies: CLI auth, API connectivity, git workspace, repo connection, baseline, AGENTS.md, GitHub App.
+Verifies: CLI auth, API connectivity, git workspace, repo connection, baseline, AGENTS.md, GitHub App. The Workspace line shows the resolved slug and its source (`config` cache, `/me`, or `git-org`). On failure it prints structured diagnostics (tried slugs, `/me` status, failed endpoint).
 
-Run this first when starting in a new environment or debugging a broken setup.
+Run this first when starting in a new environment or debugging a broken setup. `--json` for agents/CI that parse the result.
 
 ---
 
@@ -83,25 +84,6 @@ Done.
 
 ---
 
-### `driftless sync`
-
-Pull Cloud state for the current repo. Run this at the start of every session — before touching any code.
-
-```bash
-driftless sync           # Cloud pull for current repo
-driftless sync --json    # machine-readable output
-```
-
-Reports:
-- Stale topics — code changed, context not updated
-- Recent Cloud activity (FILE_CHANGED, UPDATED events)
-- Open violations for this repo
-- Suggested topics from init pending agent review
-
-No local diff. No scan. Pure Cloud state. Use `driftless scan --diff` separately before pushing.
-
----
-
 ### `driftless scan`
 
 Scans local changes against Cloud rules. Exits `0` if clean, `1` if violations found.
@@ -142,15 +124,12 @@ Use `exit $?` in CI to gate on the result.
 
 ### `driftless context`
 
-Query and manage context topics — the team's shared repo knowledge.
+Query and manage context watchers — the team's shared repo knowledge.
 
-#### List all topics
+#### List all watchers
 
 ```bash
 driftless context list
-
-# Show init-generated suggestions pending agent review
-driftless context list --suggested
 ```
 
 #### Get specific context
@@ -159,7 +138,7 @@ driftless context list --suggested
 driftless context get <slug>
 ```
 
-Returns: `what`, `how`, `where`, `gotchas`, `decisions`, `history` (recent events).
+Returns: `what`, `how`, `where`, `used_by`, `gotchas`, `decisions`, `history` (recent events).
 
 Example:
 ```bash
@@ -189,7 +168,7 @@ driftless context search "payment"
 → billing, payment-gateway, stripe-adapter
 ```
 
-#### Create a context topic
+#### Create a watcher
 
 ```bash
 driftless context add "<slug>" \
@@ -200,7 +179,7 @@ driftless context add "<slug>" \
   --decisions "Why it works this way"
 ```
 
-#### Update an existing topic
+#### Update an existing watcher
 
 ```bash
 driftless context update <slug> \
@@ -208,15 +187,15 @@ driftless context update <slug> \
   --decisions "Decision made in last PR"
 ```
 
-Every `context update` call automatically links the current repo to the topic. If the same concept spans multiple repos, run `context update` from each one — the topic accumulates all repos in `where_repos`. No flag needed.
+Use this after discovering something worth persisting. Only pass the fields you want to update.
 
-#### Sync a doc to a topic
+#### Sync a file to a watcher
 
 ```bash
-driftless context sync <slug> --doc path/to/file.md
+driftless context sync <slug> --file path/to/file.md
 ```
 
-Uploads the full content of the doc to Cloud and links it to the topic. When files the topic tracks change, Driftless knows exactly which doc is out of sync.
+Stores the file's content as `file_content` on the watcher. Useful for linking AGENTS.md sections, architecture docs, or runbooks.
 
 #### Load context for specific files
 
@@ -224,27 +203,37 @@ Uploads the full content of the doc to Cloud and links it to the topic. When fil
 driftless context load --files "src/auth/**"
 ```
 
-Delivers full content for all context topics that match the given file pattern. Use before starting work on a specific area.
+Delivers context for all watchers that match the given file pattern. Use before starting work on a specific area.
 
-#### Export topics to YAML
+#### Export watchers to YAML
 
 ```bash
 driftless context export
 driftless context export --dir .driftless/watchers
 ```
 
-Writes one `.yaml` file per topic to the specified directory. Commit the output so context travels with the code.
+Writes one `.yaml` file per watcher to the specified directory (default: `.driftless/watchers/`). Creates the directory if it doesn't exist. Commit the output to your repo so context travels with the code.
 
-#### Import topics from YAML
+```
+Exported 12 watchers → .driftless/watchers/
+```
+
+#### Import watchers from YAML
 
 ```bash
 driftless context import
 driftless context import --dir .driftless/watchers
 ```
 
-Reads all `*.yaml` files from the directory and creates or updates topics in Cloud.
+Reads all `*.yaml` files from the directory and creates or updates watchers in Cloud. Use to bootstrap a fresh workspace or restore context after a Cloud migration.
 
-#### Delete a topic
+```
+  ✓ billing (updated)
+  ✓ auth (created)
+  ✓ database (updated)
+```
+
+#### Delete a watcher
 
 ```bash
 driftless context delete <slug>
@@ -252,13 +241,70 @@ driftless context delete <slug>
 
 ---
 
+### `driftless sync`
+
+Pull Cloud state for the current repo. Run this at the start of every session — before touching any code.
+
+```bash
+driftless sync           # Cloud pull for current repo
+driftless sync --json    # machine-readable output
+```
+
+Reports:
+- Stale topics — code changed, context not updated
+- Recent Cloud activity (FILE_CHANGED, UPDATED events)
+- Open violations for this repo
+- Suggested topics from init pending agent review
+
+No local diff. No scan. Pure Cloud state. Use `driftless scan --diff` separately before pushing.
+
+---
+
+### `driftless graph`
+
+Deterministic code graph from the scanned components — no LLM. Run before editing a file to know its blast radius.
+
+```bash
+# Entrypoints (routes that reach it, with guards), upstream callers,
+# downstream deps, contracts (DTOs). Accepts repo-root OR scan-root paths.
+driftless graph file src/billing/billing.service.ts
+driftless graph file src/billing/billing.service.ts --json --depth 4
+
+# Blast radius: upstream consumers + reachable endpoints a change can break.
+driftless graph impact --files "src/billing/billing.service.ts"
+driftless graph impact --files "a.ts,b.ts" --direction both --json
+```
+
+Key fields: `entrypoints[]` (`method`, `path`, `handler`, `guards`, `guards_detected`), `upstream`, `downstream`, `contracts`, `global_guards` (repo-wide APP_GUARD), and per-component `confidence` + `evidence` (`file:line`).
+
+- `guards` empty AND `global_guards` empty → treat as **`no auth detected — verify`**, not "public" (may be a global APP_GUARD or composed auth decorator the scanner can't see).
+- `graph impact` default `--direction consumers` = what breaks; `dependencies` = what it uses; `both` = both.
+- `--depth N` 1–6 (default 3). `--json` for agents/CI.
+
+---
+
+### `driftless context doctor`
+
+Audits the context layer itself — answers "can I trust `context get`?".
+
+```bash
+driftless context doctor
+driftless context doctor --json
+```
+
+Categories: `stale` (code changed, context not updated), `orphaned` (repo deleted — hidden from agents), `draft` (suggested, never confirmed), `docs_pending` (doc anchored, never synced), `repo_leak` (references an unknown repo id). Exits non-zero when `orphaned` or `repo_leak` are present.
+
+---
+
 ### `driftless install-skill`
 
-Writes the Driftless skill into CLAUDE.md and AGENTS.md so AI agents (Claude Code, Cursor, Codex) pick it up automatically. Runs automatically at the end of `driftless init`.
+Writes the Driftless AGENTS.md template into the current repo so AI agents (Claude Code, Cursor, Codex) pick it up automatically.
 
 ```bash
 driftless install-skill
 ```
+
+Creates or appends to `AGENTS.md` at the repo root.
 
 ---
 

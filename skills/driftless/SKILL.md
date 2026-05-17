@@ -1,6 +1,6 @@
 ---
 name: driftless
-description: Manages shared repo context for AI coding sessions in Driftless-enabled repositories. Loads team knowledge before coding, persists discoveries to Cloud, and verifies architectural integrity before pushing. Use when starting or resuming work in a repo with Driftless, about to modify any module or feature, returning after time away and need to catch up on what changed, discovered a gotcha or architectural decision worth saving, or about to commit. Triggers on: "starting work", "resuming", "what changed since", "how does X work in this repo", "about to push", "about to commit", "found a gotcha", "context get", "driftless".
+description: Manages shared repo context for AI coding sessions in Driftless-enabled repositories. Loads team knowledge before coding, persists discoveries to Cloud, and verifies architectural integrity before pushing. Use when starting or resuming work in a repo with Driftless, about to modify any module or feature, returning after time away and need to catch up on what changed, discovered a gotcha or architectural decision worth saving, or about to commit. Also use before editing a specific file to understand its blast radius (entrypoints, callers, dependencies, auth guards) deterministically. Triggers on: "starting work", "resuming", "what changed since", "how does X work in this repo", "what breaks if I change this", "what calls this", "is this endpoint protected", "blast radius", "about to push", "about to commit", "found a gotcha", "context get", "graph file", "driftless".
 ---
 
 # Driftless
@@ -21,10 +21,14 @@ Route based on result:
 |---|---|
 | Doctor fails or no topics exist | → UC0: First-time setup |
 | Starting or resuming work on a feature | → Run `driftless sync`, then UC1 |
+| About to edit a specific file | → UC1, then `driftless graph file <path>` |
 | Learned something worth keeping | → UC2: Save discovery |
 | About to commit or push | → UC3: Pre-push check |
+| Need to know if context itself is trustworthy | → `driftless context doctor` |
 
 `driftless sync` is your default starting command. It pulls Cloud state for the current repo — stale topics, recent FILE_CHANGED events, open violations, and suggested topics pending review. Run it before touching any code.
+
+`driftless context doctor` audits the context layer itself — it flags stale, orphaned (repo deleted), draft (suggested, never confirmed), docs-pending and repo-leak topics. Run it if `context get` results look wrong or before relying heavily on the context layer.
 
 ---
 
@@ -140,6 +144,54 @@ driftless context get billing
 **CRITICAL — If returning after time away:** Check `history` before assuming your previous understanding is still valid. Files may have changed. Context may have been updated by a PR or another agent. Do not continue from old assumptions without reviewing recent events.
 
 **3. Repeat for every module you plan to touch.** One `context get` per area.
+
+**4. Before editing a file, get its deterministic code graph:**
+
+Context tells you the team's intent. The code graph tells you the blast radius — deterministically, no LLM.
+
+```bash
+# What is around this file: entrypoints (routes that reach it), upstream
+# callers, downstream deps, contracts (DTOs), and auth guards.
+driftless graph file src/billing/billing.service.ts
+
+# What can a change here break — the upstream consumers and the HTTP
+# routes that become reachable-and-breakable:
+driftless graph impact --files "src/billing/billing.service.ts"
+```
+
+Read it as the answer to **"what do I need to know before I touch this, and what breaks if I get it wrong"**:
+
+- `entrypoints` — the HTTP routes that reach this code, each with its `guards`. If `guards` is empty AND `global_guards` is empty, treat it as **`no auth detected — verify`**, NOT as "public". The repo may use a global APP_GUARD or a composed auth decorator the scanner can't see.
+- `upstream` / `downstream` — callers vs. dependencies.
+- `contracts` — the DTOs/inputs this path accepts.
+- Every fact carries `confidence` and `evidence` (`file:line`). Low confidence → open the file and verify; do not trust blindly.
+
+Flags: `--json` (machine-readable, for agents), `--depth N` (1–6, default 3), `--direction consumers|dependencies|both` (impact only; default `consumers` = blast radius).
+
+`graph impact` is also the right pre-edit check for risky changes and the input to a careful PR.
+
+**5. About to edit specific files — load context + coverage in one shot:**
+
+```bash
+driftless context load --files "src/billing/billing.service.ts" --json
+```
+
+Returns, per file: the relevant `topics` (direct/indirect), the deterministic `graph_facts`, and a `coverage` block: `{ status, high_risk, recommended_action }`. This tells you **whether the loaded context can actually be trusted for this file before you touch it.**
+
+**You MUST act on `coverage`, not just read it:**
+
+- `status: "reviewed"` with `match_specificity: "file"` → context is authoritative for this file. Proceed.
+- `status: "partial"` or `match_specificity` of `pattern`/`repo`/`weak` → a topic only *loosely* covers this file (broad pattern, not this exact file). Do **NOT** treat it as authoritative — verify against the actual code; if you learn something durable, update the topic (UC2).
+- `status: "none"` → **no context covers this file.** Do not assume an unrelated topic applies. After you understand the code, create/anchor a topic (UC2).
+- `high_risk: true` and not strongly covered → auth/sensitive surface without solid context. Verify in code and document the invariant (UC2) **before** changing behavior.
+- Follow `recommended_action` literally:
+  - `create_or_link_reviewed_topic` / `create_or_link_topic` → UC2: add a topic for this area.
+  - `refresh_stale_topic` → UC2: update the stale topic against current code.
+  - `reattach_or_remove_topic` → the covering topic is orphaned; flag it for reattach/removal, do not rely on it.
+  - `review_suggested_topic` / `promote_draft_topic` → confirm/flesh out the topic before trusting it.
+  - `ok` → coverage is solid; proceed.
+
+Only `status: "reviewed"` + strong (`file`) coverage means "the loaded context is authoritative." Anything else means **verify against code, then re-anchor (UC2)** — this is how context stays true to the repo over time, not just at init.
 
 ### If no topic exists for your area
 
