@@ -54,7 +54,7 @@ driftless init --src apps/api/src
 
 Git root stays at cwd; scanner starts from the given path.
 
-**Want auto-generated topics and rules?** Add `--suggest`:
+**Want suggested context topics?** Add `--suggest`:
 
 ```bash
 driftless init --suggest
@@ -62,7 +62,9 @@ driftless init --suggest
 driftless init --src apps/api/src --suggest
 ```
 
-Without `--suggest`, no topics or rules are created — you add them manually in UC2.
+Without `--suggest`, no topics are created — you add them in UC2. Rules are
+never auto-generated (generic auto-rules are noise): author the few
+STRUCTURAL invariants that must never break via the dashboard or `POST /rules`.
 
 **2. Verify setup:**
 
