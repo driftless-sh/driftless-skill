@@ -1,11 +1,11 @@
 ---
 name: driftless
-description: Manages shared repo context for AI coding sessions in Driftless-enabled repositories. Loads team knowledge before coding, persists discoveries to Cloud, and checks context coverage before wrapping up. Use when starting or resuming work in a repo with Driftless, about to modify any module or feature, returning after time away and need to catch up on what changed, discovered a gotcha or architectural decision worth saving, or about to commit. Also use before editing a specific file to understand its blast radius (entrypoints, callers, dependencies, auth guards) deterministically. Triggers on: "starting work", "resuming", "what changed since", "how does X work in this repo", "what breaks if I change this", "what calls this", "is this endpoint protected", "blast radius", "about to push", "about to commit", "found a gotcha", "context get", "graph file", "driftless".
+description: Manages shared repo context for AI coding sessions in Driftless-enabled repositories. Loads team knowledge before coding, catches you up on what drifted around your topics when you resume (a topic whose covered code the team changed), persists discoveries to Cloud, and gives a deterministic blast radius for any file. Driftless is a context + drift-awareness layer, not a linter or gate — it never blocks you. Use when starting or resuming work in a repo with Driftless, about to modify any module or feature, returning after time away and need to catch up on what changed, discovered a gotcha or architectural decision worth saving, or before pushing to refresh context that drifted. Also use before editing a specific file to understand its blast radius (entrypoints, callers, dependencies, auth guards) deterministically. Triggers on: "starting work", "resuming", "what changed since", "how does X work in this repo", "what breaks if I change this", "what calls this", "is this endpoint protected", "blast radius", "about to push", "found a gotcha", "context get", "graph file", "driftless".
 ---
 
 # Driftless
 
-Cloud is the source of truth. Local scans are execution units. You do not own topics — the team does.
+Cloud is the source of truth. You pull context before coding and persist what you learn back to Cloud. You do not own topics — the team does.
 
 ## CRITICAL: Detect your situation first
 
@@ -26,7 +26,7 @@ Route based on result:
 | About to commit or push | → Run `driftless sync`, then `driftless context get --diff` and update stale context |
 | Need to know if context itself is trustworthy | → `driftless context doctor` |
 
-`driftless sync` is your default starting command. It pulls Cloud state for the current repo — stale topics, recent FILE_CHANGED events, PR observations, and suggested topics pending review. Run it before touching any code.
+`driftless sync` is your default starting command. It pulls Cloud state for the current repo — **stale topics** (a topic whose covered code the team changed since you last looked), recent **team PR activity**, and suggested topics pending review. It is the deduped "what drifted around my topics" signal, not a raw event feed. Run it before touching any code.
 
 `driftless context doctor` audits the context layer itself — it flags stale, orphaned (repo deleted), draft (suggested, never confirmed), docs-pending and repo-leak topics. Run it if `context get` results look wrong or before relying heavily on the context layer.
 
