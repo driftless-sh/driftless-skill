@@ -1,6 +1,6 @@
 ---
 name: driftless
-description: Manages shared repo context for AI coding sessions in Driftless-enabled repositories. Loads team knowledge before coding, persists discoveries to Cloud, and verifies architectural integrity before pushing. Use when starting or resuming work in a repo with Driftless, about to modify any module or feature, returning after time away and need to catch up on what changed, discovered a gotcha or architectural decision worth saving, or about to commit. Also use before editing a specific file to understand its blast radius (entrypoints, callers, dependencies, auth guards) deterministically. Triggers on: "starting work", "resuming", "what changed since", "how does X work in this repo", "what breaks if I change this", "what calls this", "is this endpoint protected", "blast radius", "about to push", "about to commit", "found a gotcha", "context get", "graph file", "driftless".
+description: Manages shared repo context for AI coding sessions in Driftless-enabled repositories. Loads team knowledge before coding, persists discoveries to Cloud, and checks context coverage before wrapping up. Use when starting or resuming work in a repo with Driftless, about to modify any module or feature, returning after time away and need to catch up on what changed, discovered a gotcha or architectural decision worth saving, or about to commit. Also use before editing a specific file to understand its blast radius (entrypoints, callers, dependencies, auth guards) deterministically. Triggers on: "starting work", "resuming", "what changed since", "how does X work in this repo", "what breaks if I change this", "what calls this", "is this endpoint protected", "blast radius", "about to push", "about to commit", "found a gotcha", "context get", "graph file", "driftless".
 ---
 
 # Driftless
@@ -23,10 +23,10 @@ Route based on result:
 | Starting or resuming work on a feature | → Run `driftless sync`, then UC1 |
 | About to edit a specific file | → UC1, then `driftless graph file <path>` |
 | Learned something worth keeping | → UC2: Save discovery |
-| About to commit or push | → UC3: Pre-push check |
+| About to commit or push | → Run `driftless sync`, then `driftless context get --diff` and update stale context |
 | Need to know if context itself is trustworthy | → `driftless context doctor` |
 
-`driftless sync` is your default starting command. It pulls Cloud state for the current repo — stale topics, recent FILE_CHANGED events, open violations, and suggested topics pending review. Run it before touching any code.
+`driftless sync` is your default starting command. It pulls Cloud state for the current repo — stale topics, recent FILE_CHANGED events, PR observations, and suggested topics pending review. Run it before touching any code.
 
 `driftless context doctor` audits the context layer itself — it flags stale, orphaned (repo deleted), draft (suggested, never confirmed), docs-pending and repo-leak topics. Run it if `context get` results look wrong or before relying heavily on the context layer.
 
@@ -62,9 +62,8 @@ driftless init --suggest
 driftless init --src apps/api/src --suggest
 ```
 
-Without `--suggest`, no topics are created — you add them in UC2. Rules are
-never auto-generated (generic auto-rules are noise): author the few
-STRUCTURAL invariants that must never break via the dashboard or `POST /rules`.
+Without `--suggest`, no topics are created — you add them in UC2. Suggested
+topics are drafts until a human or agent fills in `what`/`how` and promotes them.
 
 **2. Verify setup:**
 
@@ -247,7 +246,7 @@ driftless context sync <slug> --file path/to/file.md
 
 - A constraint not obvious from reading the code
 - Why a pattern was chosen over a simpler alternative
-- An auth or guard requirement not yet in the rule set
+- An auth or guard requirement not yet documented as an invariant
 - Which files are quarantined and why
 - A bug you encountered and how it manifests
 
@@ -256,52 +255,6 @@ driftless context sync <slug> --file path/to/file.md
 - Notes relevant only to your current task
 - Things clearly readable from the code itself
 - Temporary workarounds you have already removed
-
----
-
-## UC3 — Check before you push
-
-**When:** Before every commit or push. Non-negotiable.
-
-### Steps
-
-**1. Scan your changes:**
-
-```bash
-driftless scan --diff
-```
-
-**2. If clean (exit 0):** push normally.
-
-**3. If violations found (exit 1):** read each one carefully.
-
-```
-[HIGH] Every B2B endpoint must use BusinessAccessGuard
-  File: src/routes/business/credit-line.ts:12
-  Code: @Post('/business/credit-line')
-```
-
-The output tells you exactly what is missing and where. Fix it. Re-scan. Repeat until clean.
-
-**4. Only push when scan returns exit 0.**
-
-### Severity guide
-
-| Severity | Action |
-|---|---|
-| `critical` / `high` | Must fix before pushing |
-| `warning` | Fix unless there is a documented reason not to |
-| `info` | Advisory — use judgment |
-
-### If you believe a violation is a false positive
-
-Do not skip the scan. First:
-
-```bash
-driftless context get <related-slug>
-```
-
-Understand the rule's intent before deciding it is wrong. If it genuinely is a false positive, mark it in the dashboard at driftless.icu → Drift → Mark exception. Do not silently ignore it.
 
 ---
 
@@ -327,9 +280,9 @@ Run `driftless init` from the repo root. Driftless has not been initialized for 
 
 The topic is marked stale — files it tracks changed since the last update. Read `stale_reason` in the output. After reviewing the current code, update the topic (UC2).
 
-**Scan takes too long**
+**Need context for local changes**
 
-Use `--diff` flag. `driftless scan --diff` scans only uncommitted changes, not the full repo.
+Use `driftless context get --diff` to load topics matching the current local diff, then update stale or missing context with UC2.
 
 ---
 

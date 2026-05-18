@@ -55,10 +55,9 @@ What it does:
 1. Detects git remote → finds or creates workspace + repo record
 2. Scans the codebase → builds component map (controllers, services, guards, modules, DTOs)
 3. Uploads baseline to Cloud
-4. Generates architectural rules from detected patterns (marked as `auto_suggested`)
-5. Creates one context topic per module as a **suggestion** (`suggested: true`) — not real context yet
-6. Detects existing docs and reports them — does NOT auto-sync them (syncing is an intentional agent action)
-7. Installs the Driftless skill into CLAUDE.md and AGENTS.md
+4. Creates one context topic per module as a **suggestion** (`suggested: true`) — not real context yet
+5. Detects existing docs and reports them — does NOT auto-sync them (syncing is an intentional agent action)
+6. Installs the Driftless skill into CLAUDE.md and AGENTS.md
 
 Output example:
 ```
@@ -75,50 +74,8 @@ Scanning codebase...
   Services:     58
   Modules:      17
 
-Suggested rules:
-  • Every B2B endpoint must use BusinessAccessGuard
-  • Services must not import controllers directly
-
 Done.
 ```
-
----
-
-### `driftless scan`
-
-Scans local changes against Cloud rules. Exits `0` if clean, `1` if violations found.
-
-```bash
-# Scan staged + uncommitted changes
-driftless scan
-
-# Scan only uncommitted changes (pre-push standard)
-driftless scan --diff
-
-# Preview what would be reported without writing anything
-driftless scan --dry-run
-```
-
-Output (clean):
-```
-Scanning uncommitted changes...
-Clean — no violations detected.
-```
-
-Output (violations):
-```
-2 violation(s) found:
-
-  [HIGH] Every B2B endpoint must use BusinessAccessGuard
-    File: src/routes/business/credit-line.ts:12
-    Code: @Post('/business/credit-line')
-
-  [INFO] Quarantine: app.controller.ts
-    File: src/app.controller.ts:205
-    Code: newMethod() {
-```
-
-Use `exit $?` in CI to gate on the result.
 
 ---
 
@@ -253,10 +210,9 @@ driftless sync --json    # machine-readable output
 Reports:
 - Stale topics — code changed, context not updated
 - Recent Cloud activity (FILE_CHANGED, UPDATED events)
-- Open violations for this repo
 - Suggested topics from init pending agent review
 
-No local diff. No scan. Pure Cloud state. Use `driftless scan --diff` separately before pushing.
+No local diff. Pure Cloud state. Use `driftless context get --diff` when you need topics for current local changes.
 
 ---
 
@@ -321,5 +277,5 @@ Creates or appends to `AGENTS.md` at the repo root.
 
 | Code | Meaning |
 |---|---|
-| `0` | Clean — no violations, command succeeded |
-| `1` | Violations found (scan) or command failed |
+| `0` | Command succeeded |
+| `1` | Command failed |
