@@ -55,7 +55,7 @@ What it does:
 1. Detects git remote → finds or creates workspace + repo record
 2. Scans the codebase → builds component map (controllers, services, guards, modules, DTOs)
 3. Uploads baseline to Cloud
-4. Creates one context topic per module as a **suggestion** (`suggested: true`) — not real context yet
+4. **Only with `--suggest`** (opt-in, off by default): creates one suggested topic per module (`suggested: true`) — drafts, not real context yet. Without the flag, no topics are created.
 5. Detects existing docs and reports them — does NOT auto-sync them (syncing is an intentional agent action)
 6. Installs the Driftless skill into CLAUDE.md and AGENTS.md
 
@@ -81,9 +81,9 @@ Done.
 
 ### `driftless context`
 
-Query and manage context watchers — the team's shared repo knowledge.
+Query and manage context topics — the team's shared repo knowledge.
 
-#### List all watchers
+#### List all topics
 
 ```bash
 driftless context list
@@ -125,7 +125,7 @@ driftless context search "payment"
 → billing, payment-gateway, stripe-adapter
 ```
 
-#### Create a watcher
+#### Create a topic
 
 ```bash
 driftless context add "<slug>" \
@@ -136,7 +136,7 @@ driftless context add "<slug>" \
   --decisions "Why it works this way"
 ```
 
-#### Update an existing watcher
+#### Update an existing topic
 
 ```bash
 driftless context update <slug> \
@@ -146,13 +146,13 @@ driftless context update <slug> \
 
 Use this after discovering something worth persisting. Only pass the fields you want to update.
 
-#### Sync a file to a watcher
+#### Sync a file to a topic
 
 ```bash
 driftless context sync <slug> --file path/to/file.md
 ```
 
-Stores the file's content as `file_content` on the watcher. Useful for linking AGENTS.md sections, architecture docs, or runbooks.
+Stores the file's content as `file_content` on the topic. Useful for linking AGENTS.md sections, architecture docs, or runbooks.
 
 #### Load context for specific files
 
@@ -160,37 +160,9 @@ Stores the file's content as `file_content` on the watcher. Useful for linking A
 driftless context load --files "src/auth/**"
 ```
 
-Delivers context for all watchers that match the given file pattern. Use before starting work on a specific area.
+Delivers context for all topics that match the given file pattern. Use before starting work on a specific area.
 
-#### Export watchers to YAML
-
-```bash
-driftless context export
-driftless context export --dir .driftless/watchers
-```
-
-Writes one `.yaml` file per watcher to the specified directory (default: `.driftless/watchers/`). Creates the directory if it doesn't exist. Commit the output to your repo so context travels with the code.
-
-```
-Exported 12 watchers → .driftless/watchers/
-```
-
-#### Import watchers from YAML
-
-```bash
-driftless context import
-driftless context import --dir .driftless/watchers
-```
-
-Reads all `*.yaml` files from the directory and creates or updates watchers in Cloud. Use to bootstrap a fresh workspace or restore context after a Cloud migration.
-
-```
-  ✓ billing (updated)
-  ✓ auth (created)
-  ✓ database (updated)
-```
-
-#### Delete a watcher
+#### Delete a topic
 
 ```bash
 driftless context delete <slug>
@@ -207,12 +179,28 @@ driftless sync           # Cloud pull for current repo
 driftless sync --json    # machine-readable output
 ```
 
-Reports:
-- Stale topics — code changed, context not updated
-- Recent Cloud activity (FILE_CHANGED, UPDATED events)
-- Suggested topics from init pending agent review
+Reports — the deduped "what moved around my topics" signal, not a raw event feed:
+- **Stale topics** — a topic whose covered code the team changed on a tracked branch since you last looked
+- **Team PR activity** — what teammates shipped against this repo's context (via the GitHub App)
+- **Tracking line** — which branches' pushes count as drift (the default branch is always tracked)
+- Suggested topics from `init --suggest` pending review
 
-No local diff. Pure Cloud state. Use `driftless context get --diff` when you need topics for current local changes.
+No local diff. Pure Cloud state. Use `driftless context get --diff` / `context load --diff` when you need topics for your current *local* uncommitted changes (no GitHub App needed).
+
+---
+
+### `driftless branches`
+
+View or set which branches' pushes count as drift. The repo's **default branch** (from GitHub, auto-detected — main/master/whatever) is always tracked: zero config. Add extra branches only if your real integration branch isn't the GitHub default (e.g. you ship from `release` or `develop`).
+
+```bash
+driftless branches                 # show tracked branches
+driftless branches add release     # also detect drift from pushes to `release`
+driftless branches rm staging
+driftless branches --json
+```
+
+A push to a non-tracked branch is recorded for audit but does **not** mark topics stale — a throwaway feature branch never creates false drift. This is why `sync` only surfaces drift from tracked branches.
 
 ---
 

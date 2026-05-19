@@ -8,7 +8,7 @@ Every time an AI agent works on a Driftless-enabled repo, it must follow this lo
 ┌─────────────────────────────────────────────┐
 │  1. SYNC CLOUD STATE                        │
 │  driftless sync                             │
-│  Catch stale topics and recent repo events  │
+│  What drifted around your topics + team PRs │
 ├─────────────────────────────────────────────┤
 │  2. LOAD CONTEXT                            │
 │  driftless context get <feature>            │
@@ -35,7 +35,7 @@ Run this first when starting or resuming:
 driftless sync
 ```
 
-Read stale topics, recent `FILE_CHANGED` / `UPDATED` events, PR observations, and suggested topics. If a topic is stale, inspect current code before relying on it.
+Read **stale topics** (a topic whose covered code the team changed on a **tracked branch** since you last looked), **team PR activity**, the **tracking line** (which branches count as drift — the default branch is always tracked; `driftless branches` to view/change), and suggested topics. It is the deduped "what drifted around me" signal, not a raw event feed. If a topic is stale, inspect current code before relying on it. For your own *local* uncommitted changes use `driftless context get --diff` instead (no GitHub App needed).
 
 ## Step 2: Load Context
 

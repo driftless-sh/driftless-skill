@@ -28,6 +28,8 @@ Route based on result:
 
 `driftless sync` is your default starting command. It pulls Cloud state for the current repo — **stale topics** (a topic whose covered code the team changed since you last looked), recent **team PR activity**, and suggested topics pending review. It is the deduped "what drifted around my topics" signal, not a raw event feed. Run it before touching any code.
 
+Drift is **scoped to tracked branches**: a topic only goes stale when its covered code changes on the repo's default branch (auto-detected — main/master/whatever) or an extra branch the team opted into. A push to a throwaway feature branch is recorded but never creates false drift. `driftless branches` shows/sets the tracked set; `sync` prints it as the `tracking:` line so the scope is never invisible.
+
 `driftless context doctor` audits the context layer itself — it flags stale, orphaned (repo deleted), draft (suggested, never confirmed), docs-pending and repo-leak topics. Run it if `context get` results look wrong or before relying heavily on the context layer.
 
 ---
