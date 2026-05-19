@@ -227,7 +227,13 @@ driftless context update <slug> \
 
 You can pass `--gotcha` multiple times — all values are appended without overwriting existing ones.
 
-Every `context update` call automatically links the current repo to the topic — no extra flag needed. If you are working across multiple repos that share a concept, run `context update` from each repo and the topic will accumulate all of them in `where_repos`. This is how cross-repo context is built.
+**Cross-repo:** a topic can span multiple repos (`where_repos`). When the same concept lives in another repo you are working in, record that reference explicitly:
+
+```bash
+driftless context link <slug>
+```
+
+`context link` registers the repo you are currently in into the topic's `where_repos` and **changes nothing else** (no what/how/gotchas/decisions). It is the clean way to say "this topic is also used here". After linking, `context get <slug>` shows `used in (N repos): …` and groups components by repo. (`context update` also auto-links the repo you run it from as a side effect — but use `context link` when linking is all you want, instead of inventing a throwaway update.)
 
 **If no topic exists for this area:**
 
