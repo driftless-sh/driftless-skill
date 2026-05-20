@@ -131,20 +131,97 @@ driftless context search "payment"
 driftless context add "<slug>" \
   --what "What this module does" \
   --how "How it is implemented" \
-  --where "src/path/to/module/" \
-  --gotchas "What to watch out for" \
+  --pattern "src/auth/**" \
+  --pattern "src/users/**" \
   --decisions "Why it works this way"
 ```
+
+`--pattern` is **repeatable** — pass it multiple times for a multi-anchor topic. The CLI blocks creation if any pattern matches 0 files locally; emits a non-blocking `⚠ over-broad anchor` warning when the topic covers more than 100 components (healthy is 5–40 — see "Anchoring discipline" below).
+
+For backward compat `--where path/to/file` still works as a single explicit anchor. Use `--pattern` for globs (the common case).
 
 #### Update an existing topic
 
 ```bash
+# Replace scalars
+driftless context update <slug> --what "..." --how "..."
+
+# Append, never clobber — repeatable
 driftless context update <slug> \
-  --gotchas "New gotcha discovered" \
-  --decisions "Decision made in last PR"
+  --gotcha "Discovered a new trap" \
+  --gotcha "And another one" \
+  --decision "Chose A over B because Y" \
+  --invariant "All writes must use the lock" \
+  --check "Run integration suite before merging"
+
+# Manage patterns atomically — repeatable
+driftless context update <slug> \
+  --add-pattern "src/billing/webhooks/**" \
+  --add-pattern "src/billing/refunds/**" \
+  --remove-pattern "src/billing/legacy/**"
 ```
 
-Use this after discovering something worth persisting. Only pass the fields you want to update.
+- **Singular** flag (`--gotchas`, `--decisions`, `--pattern`) = REPLACE the whole field.
+- **Append** flags (`--gotcha`, `--decision`, `--invariant`, `--check`) = APPEND a new line. Pass each as many times as you want — every value is appended atomically in a single PATCH (the SQL UPDATE runs under a row lock so concurrent appends don't lose data).
+- `--add-pattern` / `--remove-pattern` are idempotent: running the same one twice is a no-op. Both can fire in the same PATCH — remove applies first, then add.
+- Every PATCH bumps `version` and writes a history event, so **batch related changes into ONE invocation** rather than splitting into N small ones.
+
+Get `--help` on any subcommand for the full flag list:
+
+```bash
+driftless context add --help
+driftless context update --help
+```
+
+#### Anchoring discipline
+
+Patterns define which slice of the codebase a topic claims. Size matters:
+
+| Component count | Verdict |
+|---|---|
+| 5–40 | Healthy — narrow enough to mean something specific |
+| 41–99 | Wide — verify it's truly one concept |
+| 100+ | Trap — almost always over-broad; the topic becomes a useless catch-all |
+
+The CLI emits `⚠ over-broad anchor` after `add`/`update` when the topic crosses 100 components. Don't suppress it — split into narrower topics instead.
+
+**Good** (narrow, multi-anchor):
+```bash
+driftless context add "checkout-flow" \
+  --pattern "src/checkout/**" --pattern "src/cart/**" \
+  --what "Cart → checkout → payment"
+```
+
+**Bad** (catch-all that will rot):
+```bash
+driftless context add "backend" --pattern "src/**"       # don't
+```
+
+#### Linking topics with `[[slug]]`
+
+Inside any free-text field on a topic (`--what`, `--how`, `--decisions`, `--gotcha`, `--invariant`, `--ownership`), write `[[other-topic-slug]]` to mark a forward reference. The API parses every mention on every create/update and stores the slugs in `references_topics`. The reverse direction (`referenced_by`) is computed at read-time.
+
+```bash
+driftless context update refund-flow \
+  --gotcha "Same race as [[stripe-webhook-ingest]]" \
+  --decision "Idempotency-key derived from charge_id, mirroring [[payment-gateway]]"
+```
+
+`context get refund-flow` then shows the forward refs; `context get payment-gateway` shows `refund-flow` under `referenced by`.
+
+- Slug grammar: lowercase alphanumerics + hyphens, must start with `[a-z0-9]`. Anything else is ignored.
+- Self-references are silently stripped.
+- Dead links (slugs that don't resolve to a real topic) are accepted in writes but never produce a backlink on the other side — they sit silently in `references_topics` until you fix them.
+
+#### Cross-repo: link a topic to another repo
+
+```bash
+driftless context link <slug>
+```
+
+Registers the repo you are currently in into the topic's `where_repos`. Touches only the repo list — `what`/`how`/`gotchas`/`decisions` are NOT modified. Use this when the same concept lives in another repo.
+
+`context get <slug>` then shows `used in (N repos): …` and groups components by repo. `context update` also auto-links the repo you run it from as a side effect — use `context link` when linking is all you want.
 
 #### Sync a file to a topic
 

@@ -89,21 +89,74 @@ Before wrapping up, load the context for your local diff:
 driftless context get --diff
 ```
 
-If you learned something durable, save it:
+If you learned something durable, save it. **Batch every related change into ONE `update` call** — each PATCH bumps `version` and writes a history event, so N small updates pollute the trail:
 
 ```bash
 driftless context update <slug> \
-  --gotcha "What I learned that was not documented" \
-  --decisions "Why the team does it this way"
+  --gotcha "Webhooks arrive out-of-order — idempotency key required" \
+  --gotcha "Refund > 90 days breaks reconciliation" \
+  --decision "Async webhook handler chosen to absorb retry storms" \
+  --add-pattern "src/billing/webhooks/**"
 ```
 
-If no topic covers the area:
+Append flags (`--gotcha`, `--decision`, `--invariant`, `--check`) are repeatable and additive — every value lands atomically under a row lock, so concurrent agents don't lose appends.
+
+If no topic covers the area, create one — multi-anchor with `--pattern` repeated keeps the topic narrow:
 
 ```bash
 driftless context add "payment-module" \
   --what "Handles all payment processing via Stripe" \
-  --how "src/payments/payments.module.ts -> PaymentsService -> StripeAdapter" \
-  --where "src/payments/"
+  --how "PaymentsService → StripeAdapter; webhooks live in webhooks/" \
+  --pattern "src/payments/**" \
+  --pattern "src/billing/webhooks/**"
 ```
 
 This becomes team memory. Every agent can query it with `driftless context get payment-module`.
+
+## Anchoring discipline
+
+Patterns claim a slice of the codebase. Healthy topics anchor **5–40 components**; anything past **100** is almost always over-broad — the topic devolves into a catch-all and `context get` returns generic guidance instead of the precise thing you needed. The CLI emits a non-blocking `⚠ over-broad anchor` warning when you cross the threshold; **split into narrower topics rather than suppress it**.
+
+Good (narrow, conceptual):
+```bash
+driftless context add "checkout-flow" \
+  --pattern "src/checkout/**" --pattern "src/cart/**"
+```
+
+Bad (catch-all that will rot):
+```bash
+driftless context add "backend" --pattern "src/**"   # don't
+```
+
+Manage patterns over time without clobbering the rest of the topic:
+
+```bash
+driftless context update billing-flow \
+  --add-pattern "src/billing/refunds/**" \
+  --remove-pattern "src/billing/legacy/**"
+```
+
+Both are idempotent (re-running is a no-op).
+
+## Linking topics with `[[slug]]`
+
+Topics are not islands. When something only makes sense in the context of another topic, link instead of duplicate. Inside any free-text field (`--what`, `--how`, `--decisions`, `--gotcha`, `--invariant`, `--ownership`), write `[[other-topic-slug]]` and the API records the link automatically on every create/update.
+
+```bash
+driftless context update refund-flow \
+  --gotcha "Same race as [[stripe-webhook-ingest]]" \
+  --decision "Idempotency-key derived from charge_id, mirroring [[payment-gateway]]"
+```
+
+`context get refund-flow` then shows a `references` section listing the forward links; `context get payment-gateway` shows `referenced by: refund-flow`. The dashboard renders each `[[slug]]` as a clickable link.
+
+**When to link:**
+- A gotcha only makes sense if you already know another topic — link instead of restating.
+- A decision is the consequence of an earlier decision recorded elsewhere — link.
+- Two topics describe parts of the same flow — link both directions.
+
+**When NOT to link:**
+- The slug just sounds vaguely related — don't.
+- The target topic doesn't exist yet — either create it first, or skip the link. Dead links sit silently in the data and never produce a backlink, so the trace rots invisibly.
+
+Slug grammar: lowercase alphanumerics + hyphens, must start with `[a-z0-9]`. Self-references are stripped automatically.
