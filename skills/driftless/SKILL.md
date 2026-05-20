@@ -264,6 +264,70 @@ driftless context sync <slug> --file path/to/file.md
 - Things clearly readable from the code itself
 - Temporary workarounds you have already removed
 
+### Anchoring discipline
+
+Patterns (`--pattern`, `--add-pattern`) are how a topic claims its slice of the codebase. The size of that slice decides whether the topic is useful or noise.
+
+**Heuristic — what a healthy topic looks like:**
+
+| Component count | Verdict |
+|---|---|
+| 5–40 | Healthy — narrow enough to mean something specific |
+| 41–99 | Wide — verify the topic is actually one concept, not three |
+| 100+ | Trap — almost always over-broad; the topic devolves into a catch-all and `context get` returns generic guidance instead of the precise thing you needed |
+
+The CLI emits a non-blocking `⚠ over-broad anchor` warning after any `context add` / `context update` that crosses the 100 threshold. Heed it.
+
+**Good — narrow, conceptual, multi-anchor:**
+
+```bash
+driftless context add "checkout-flow" \
+  --pattern "src/checkout/**" \
+  --pattern "src/cart/**" \
+  --what "Cart → checkout → payment confirmation"
+```
+
+```bash
+driftless context update auth-boundaries \
+  --add-pattern "src/auth/refresh/**" \
+  --add-pattern "src/auth/oauth/**"
+```
+
+**Bad — catch-all that will rot:**
+
+```bash
+driftless context add "backend" --pattern "src/**"      # don't
+driftless context add "all-controllers" --pattern "**/*.controller.ts"  # don't
+```
+
+If you find yourself reaching for `src/**`, the answer is more topics, not a wider glob. One topic per *concept*, anchored to the directories that concept actually lives in.
+
+**Batch appends — one PATCH, not N:**
+
+Every `context update` bumps version and writes a history event. Batch everything you learned into ONE invocation, never split:
+
+```bash
+# YES — one atomic update, one event, one version bump
+driftless context update billing-flow \
+  --gotcha "Stripe webhooks deliver out-of-order — idempotency-key required" \
+  --gotcha "Refund > 90 days breaks reconciliation" \
+  --decision "Async webhook handler chosen over sync to absorb retry storms" \
+  --add-pattern "src/billing/webhooks/**"
+
+# NO — three updates, three events, three version bumps, noisy history
+driftless context update billing-flow --gotcha "..."
+driftless context update billing-flow --gotcha "..."
+driftless context update billing-flow --decision "..."
+```
+
+**Removing a stale anchor:**
+
+```bash
+driftless context update billing-flow --remove-pattern "src/billing/legacy/**"
+```
+
+Idempotent: running the same `--remove-pattern` twice is a no-op the second time.
+
 ---
 
 ## Common issues
