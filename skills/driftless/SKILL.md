@@ -328,6 +328,39 @@ driftless context update billing-flow --remove-pattern "src/billing/legacy/**"
 
 Idempotent: running the same `--remove-pattern` twice is a no-op the second time.
 
+### Linking topics with `[[slug]]`
+
+Topics are not islands. When the thing you are documenting only makes sense in the context of *another* topic — that's a link, not a copy-paste of duplicated detail.
+
+Inside any free-text field of a topic (`--what`, `--how`, `--decisions`, `--gotcha`, `--invariant`, `--ownership`), write `[[other-topic-slug]]` to mark a forward reference. The API parses it on every create / update and stores the slug in `references_topics`; the other topic then sees this one in its `referenced_by` list.
+
+**When to link:**
+
+- A gotcha *only* makes sense if you already understand another topic — link to it instead of restating it.
+- A decision is the consequence of an earlier decision recorded elsewhere — link.
+- Two topics describe parts of the same flow — link both directions (each mentions the other).
+- A constraint exists *because of* a guarantee made by another module — link to the guarantee's topic.
+
+**When NOT to link:**
+
+- A slug just sounds vaguely related — don't link. Wiki links are claims about *real* causal / definitional dependencies, not free-association.
+- The other topic doesn't exist yet — either create it first, or skip the link. Dead links resolve to nothing on the other side (no backlink ever appears), so the trace will rot silently.
+
+**Example:**
+
+```bash
+driftless context update refund-flow \
+  --gotcha "Refund webhooks arrive out-of-order — same race as [[stripe-webhook-ingest]]" \
+  --decision "Idempotency-key derived from charge_id, mirroring [[payment-gateway]]"
+```
+
+After this update:
+- `refund-flow.references_topics` will contain `stripe-webhook-ingest` and `payment-gateway`.
+- `stripe-webhook-ingest.referenced_by` and `payment-gateway.referenced_by` will both contain `refund-flow`.
+- `context get refund-flow` shows the forward refs; `context get payment-gateway` shows the backlink.
+
+Slug syntax: lowercase alphanumerics + hyphens, must start with `[a-z0-9]`. Self-references (a topic linking to itself) are silently stripped. Dead links (slugs that don't resolve to a real topic) are accepted in writes but never produce a backlink on the other side.
+
 ---
 
 ## Common issues
