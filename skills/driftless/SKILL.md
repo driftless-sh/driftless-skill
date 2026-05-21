@@ -48,6 +48,8 @@ driftless init
 
 This scans the repo, uploads the baseline, and installs the AGENTS.md skill. Takes ~30 seconds. It will report how many existing docs it found — those are NOT auto-synced.
 
+**Framework is auto-detected** from `package.json` (no flag needed). NestJS, Next.js, and standalone React (Vite/CRA) all have extractors. Use `--framework nestjs|nextjs|react|other` only to override a wrong or ambiguous auto-detection.
+
 **Monorepo?** If your code lives in a subfolder (e.g. `apps/api/src`), pass `--src`:
 
 ```bash
@@ -164,8 +166,8 @@ driftless graph impact --files "src/billing/billing.service.ts"
 
 Read it as the answer to **"what do I need to know before I touch this, and what breaks if I get it wrong"**:
 
-- `entrypoints` — the HTTP routes that reach this code, each with its `guards`. If `guards` is empty AND `global_guards` is empty, treat it as **`no auth detected — verify`**, NOT as "public". The repo may use a global APP_GUARD or a composed auth decorator the scanner can't see.
-- `upstream` / `downstream` — callers vs. dependencies.
+- `entrypoints` — the HTTP routes that reach this code, each with its `guards`. NestJS guards come from `@UseGuards` (named) and `APP_GUARD` (in `global_guards`). For Next.js, `"clerk-auth"` is emitted when a page/layout/route/server-action calls `auth()` or `currentUser()` from `@clerk/nextjs/server` (call-site provenance in `metadata.guard_evidence`). If `guards` is empty AND `global_guards` is empty, treat it as **`no auth detected — verify`**, NOT as "public" — the repo may still use a composed auth decorator or non-Clerk auth helper the scanner can't see.
+- `upstream` / `downstream` — callers vs. dependencies. For Next.js/React, `downstream` follows resolved `imports` edges, so a page lists the components it renders and a component lists the hooks it uses (`react-component` / `react-hook` are first-class component types, detected by JSX/naming shape). Import resolution is file-local (tsconfig paths + relative); imports of untracked files (libs, services, node_modules) resolve to nothing by design.
 - `contracts` — the DTOs/inputs this path accepts.
 - Every fact carries `confidence` and `evidence` (`file:line`). Low confidence → open the file and verify; do not trust blindly.
 

@@ -298,7 +298,11 @@ driftless graph impact --files "a.ts,b.ts" --direction both --json
 
 Key fields: `entrypoints[]` (`method`, `path`, `handler`, `guards`, `guards_detected`), `upstream`, `downstream`, `contracts`, `global_guards` (repo-wide APP_GUARD), and per-component `confidence` + `evidence` (`file:line`).
 
-- `guards` empty AND `global_guards` empty → treat as **`no auth detected — verify`**, not "public" (may be a global APP_GUARD or composed auth decorator the scanner can't see).
+- `guards` populated:
+  - NestJS — the `@UseGuards(X)` name (e.g. `"AuthGuard"`); `APP_GUARD` providers go in `global_guards`.
+  - Next.js — `"clerk-auth"` when `auth()` / `currentUser()` from `@clerk/nextjs/server` is invoked in the file. Call-site `file:line` lives in `metadata.guard_evidence`.
+- `guards` empty AND `global_guards` empty → treat as **`no auth detected — verify`**, not "public" — may still be a composed/custom auth decorator or non-Clerk auth helper the scanner can't see.
+- `downstream` (Next.js/React) follows resolved `imports` edges: a page lists the `react-component`s it renders, a component lists the `react-hook`s it uses. Components/hooks are detected by shape (JSX / `use*` naming), and imports resolve file-locally (tsconfig paths + relative). Imports of untracked files (libs, services, node_modules) resolve to nothing by design.
 - `graph impact` default `--direction consumers` = what breaks; `dependencies` = what it uses; `both` = both.
 - `--depth N` 1–6 (default 3). `--json` for agents/CI.
 
