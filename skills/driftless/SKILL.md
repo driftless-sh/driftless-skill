@@ -224,7 +224,8 @@ Work from the closest available topic. After you understand the area, create a t
 driftless context update <slug> \
   --gotcha "What I learned that wasn't documented" \
   --gotcha "Another gotcha if needed" \
-  --decisions "Why the team does it this way"
+  --decisions "Why the team does it this way" \
+  --kind domain-map
 ```
 
 You can pass `--gotcha` multiple times — all values are appended without overwriting existing ones.
@@ -243,7 +244,8 @@ driftless context link <slug>
 driftless context add "<slug>" \
   --what "What this module does" \
   --how "How it is implemented" \
-  --where "src/path/to/module/"
+  --where "src/path/to/module/" \
+  --kind domain-map
 ```
 
 **If syncing an existing file to a topic:**
@@ -304,7 +306,7 @@ driftless context add "all-controllers" --pattern "**/*.controller.ts"  # don't
 
 If you find yourself reaching for `src/**`, the answer is more topics, not a wider glob. One topic per *concept*, anchored to the directories that concept actually lives in.
 
-**Batch appends — one PATCH, not N:**
+**Batch updates — one PATCH, not N:**
 
 Every `context update` bumps version and writes a history event. Batch everything you learned into ONE invocation, never split:
 
