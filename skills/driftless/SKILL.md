@@ -225,7 +225,9 @@ driftless context update <slug> \
   --gotcha "What I learned that wasn't documented" \
   --gotcha "Another gotcha if needed" \
   --decisions "Why the team does it this way" \
-  --kind domain-map
+  --kind code-context \
+  --rel depends_on:auth-clerk \
+  --tags security,auth
 ```
 
 You can pass `--gotcha` multiple times — all values are appended without overwriting existing ones.
@@ -242,10 +244,10 @@ driftless context link <slug>
 
 ```bash
 driftless context add "<slug>" \
-  --what "What this module does" \
-  --how "How it is implemented" \
-  --where "src/path/to/module/" \
-  --kind domain-map
+  --content "# Module Name\n\n## What\nWhat this module does\n\n## How\nHow it is implemented\n\n## Gotchas\nKnown traps" \
+  --kind code-context \
+  --tags area,label \
+  --pattern "src/path/**"
 ```
 
 **If syncing an existing file to a topic:**
@@ -364,6 +366,51 @@ After this update:
 - `context get refund-flow` shows the forward refs; `context get payment-gateway` shows the backlink.
 
 Slug syntax: lowercase alphanumerics + hyphens, must start with `[a-z0-9]`. Self-references (a topic linking to itself) are silently stripped. Dead links (slugs that don't resolve to a real topic) are accepted in writes but never produce a backlink on the other side.
+
+### Semantic Relations
+
+Topics can be connected with typed relations. Unlike `[[slug]]` mentions (weak backlinks), relations are strong typed edges between topics.
+
+```bash
+driftless context update <slug> --rel depends_on:other-topic
+driftless context relations <slug>          # list incoming and outgoing
+driftless context graph <slug>              # see local graph in CLI
+Dashboard → /graph                          # full workspace topic graph (React Flow)
+```
+
+Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`, `documents`, `risk_for`.
+
+After creating relations, the dashboard Topic Graph (`/graph`) shows the full workspace knowledge graph with color-coded nodes and relation edges.
+
+### Topics as Notes
+
+A topic is a markdown note with optional code anchors. The `--content` flag accepts either inline markdown or a file path (prefixed with `@`).
+
+```bash
+# Inline markdown
+driftless context add "roadmap-q3" \
+  --content "# Q3 Roadmap\n\n## What\n- Auth redesign\n- Stripe migration\n\n## How\nPhased rollout" \
+  --kind roadmap
+
+# From a file
+driftless context add "architecture-decisions" \
+  --content @docs/decisions/adr-001.md \
+  --kind decision
+```
+
+**YAML frontmatter** in content is parsed automatically:
+```
+---
+what: Auth system
+how: JWT via Clerk
+ownership: @platform
+---
+# Additional markdown body...
+```
+
+**Kind values:** `code-context`, `domain-map`, `decision`, `roadmap`, `runbook`, `customer-insight`, `integration-note`, `docs-note`, `operational-note`
+
+**Tags** (`--tags`) are comma-separated labels for filtering in the dashboard and CLI.
 
 ---
 
