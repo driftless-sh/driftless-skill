@@ -87,6 +87,9 @@ Query and manage context topics — the team's shared repo knowledge.
 
 ```bash
 driftless context list
+driftless context list --suggested   # show auto-generated draft topics
+driftless context list --stale      # topics whose anchored code changed
+driftless context list --kind code-context
 ```
 
 #### Get specific context
@@ -95,7 +98,7 @@ driftless context list
 driftless context get <slug>
 ```
 
-Returns: `what`, `how`, `where`, `used_by`, `gotchas`, `decisions`, `history` (recent events).
+Returns: `what`, `how`, `where`, `used_by`, `gotchas`, `decisions`, `content`, `ownership`, `invariants`, `required_checks`, `history` (recent events).
 
 Example:
 ```bash
@@ -129,14 +132,17 @@ driftless context search "payment"
 
 ```bash
 driftless context add "<slug>" \
-  --what "What this module does" \
-  --how "How it is implemented" \
+  --content "# Module Name\n\n## What\nWhat this module does\n\n## How\nHow it is implemented" \
   --pattern "src/auth/**" \
   --pattern "src/users/**" \
-  --decisions "Why it works this way"
+  --kind code-context \
+  --tags auth,security \
+  --rel depends_on:token-refresh
 ```
 
 `--pattern` is **repeatable** — pass it multiple times for a multi-anchor topic. The CLI blocks creation if any pattern matches 0 files locally; emits a non-blocking `⚠ over-broad anchor` warning when the topic covers more than 100 components (healthy is 5–40 — see "Anchoring discipline" below).
+
+Other `context add` flags: `--what`, `--how`, `--where` (single file path), `--decisions`, `--gotchas`, `--ownership`, `--status <reviewed|draft>`, `--file` (content from file path), `--dry-run`.
 
 For backward compat `--where path/to/file` still works as a single explicit anchor. Use `--pattern` for globs (the common case).
 
@@ -165,6 +171,8 @@ driftless context update <slug> \
 - **Append** flags (`--gotcha`, `--decision`, `--invariant`, `--check`) = APPEND a new line. Pass each as many times as you want — every value is appended atomically in a single PATCH (the SQL UPDATE runs under a row lock so concurrent appends don't lose data).
 - `--add-pattern` / `--remove-pattern` are idempotent: running the same one twice is a no-op. Both can fire in the same PATCH — remove applies first, then add.
 - Every PATCH bumps `version` and writes a history event, so **batch related changes into ONE invocation** rather than splitting into N small ones.
+
+Other `context update` flags: `--content` (full markdown body), `--kind`, `--tags`, `--status <reviewed|draft>`, `--where` (single file path), `--gotchas` (replace all gotchas), `--decisions` (replace all decisions), `--ownership`, `--pattern` (replace all patterns), `--enforce "rule"`, `--dry-run`, `--json`, `--check` (required check, repeatable).
 
 Get `--help` on any subcommand for the full flag list:
 
@@ -223,10 +231,17 @@ Registers the repo you are currently in into the topic's `where_repos`. Touches 
 
 `context get <slug>` then shows `used in (N repos): …` and groups components by repo. `context update` also auto-links the repo you run it from as a side effect — use `context link` when linking is all you want.
 
-#### Sync a file to a topic
+#### Sync a file or note to a topic
 
 ```bash
-driftless context sync <slug> --file path/to/file.md
+# Anchor a doc file — sets file_content, origin=doc, status=draft, kind=docs-note
+driftless context sync <slug> --doc path/to/file.md
+
+# Add a quick note — maps to the decisions field
+driftless context sync <slug> --note "Key finding from recent review"
+
+# Sync with path anchoring
+driftless context sync <slug> --doc path/to/file.md --files "src/auth/**"
 ```
 
 Stores the file's content as `file_content` on the topic. Useful for linking AGENTS.md sections, architecture docs, or runbooks.
@@ -234,15 +249,17 @@ Stores the file's content as `file_content` on the topic. Useful for linking AGE
 #### Load context for specific files
 
 ```bash
-driftless context load --files "src/auth/**"
+# Takes comma-separated file paths (not globs)
+driftless context load --files "src/auth/guard.ts,src/auth/service.ts"
 ```
 
-Delivers context for all topics that match the given file pattern. Use before starting work on a specific area.
+Delivers context for all topics that match the given file paths. Use before starting work on a specific area. For local uncommitted changes, use `context get --diff` instead.
 
 #### Delete a topic
 
 ```bash
 driftless context delete <slug>
+driftless context delete <slug> --dry-run   # preview without deleting
 ```
 
 ---
@@ -262,7 +279,7 @@ Reports — the deduped "what moved around my topics" signal, not a raw event fe
 - **Tracking line** — which branches' pushes count as drift (the default branch is always tracked)
 - Suggested topics from `init --suggest` pending review
 
-No local diff. Pure Cloud state. Use `driftless context get --diff` / `context load --diff` when you need topics for your current *local* uncommitted changes (no GitHub App needed).
+No local diff. Pure Cloud state. Use `driftless context get --diff` when you need topics for your current *local* uncommitted changes. `context load` requires `--files` and does not support `--diff`.
 
 ---
 

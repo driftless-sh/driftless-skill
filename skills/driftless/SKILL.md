@@ -67,7 +67,7 @@ driftless init --src apps/api/src --suggest
 ```
 
 Without `--suggest`, no topics are created — you add them in UC2. Suggested
-topics are drafts until a human or agent fills in `what`/`how` and promotes them.
+topics are drafts until a human or agent fills in content and promotes them to `reviewed`.
 
 **2. Verify setup:**
 
@@ -83,7 +83,7 @@ If you ran `--suggest`, view the auto-generated topics:
 driftless context list --suggested
 ```
 
-For each suggested topic, confirm it, fill in `what`/`how`, and update it (UC2). That removes the suggestion flag and makes it real team context.
+For each suggested topic, confirm it, fill in content (`--content` or `--what`/`--how`), and update it to `reviewed` status (UC2). That removes the suggestion flag and makes it real team context.
 
 **3. Ask the user about their docs:**
 
@@ -94,7 +94,7 @@ If `init` reported N docs found, ask the user which module each doc belongs to b
 Then sync each one:
 
 ```bash
-driftless context sync <slug> --file path/to/doc.md
+driftless context sync <slug> --doc path/to/doc.md
 ```
 
 **4. Proceed to UC1** to load context for the area you're about to work on.
@@ -224,13 +224,13 @@ Work from the closest available topic. After you understand the area, create a t
 driftless context update <slug> \
   --gotcha "What I learned that wasn't documented" \
   --gotcha "Another gotcha if needed" \
-  --decisions "Why the team does it this way" \
+  --decision "Why the team does it this way" \
   --kind code-context \
   --rel depends_on:auth-clerk \
   --tags security,auth
 ```
 
-You can pass `--gotcha` multiple times — all values are appended without overwriting existing ones.
+You can pass `--gotcha` and `--decision` multiple times — all values are appended without overwriting existing ones. Other append flags: `--invariant`, `--check`. Use `--status reviewed` to promote a draft. Use `--content` to set the full markdown body. Use `--enforce` to request an enforcement rule.
 
 **Cross-repo:** a topic can span multiple repos (`where_repos`). When the same concept lives in another repo you are working in, record that reference explicitly:
 
@@ -446,3 +446,8 @@ Use `driftless context get --diff` to load topics matching the current local dif
 
 - [Full command reference](references/commands.md)
 - [Detailed workflow guide](references/workflow.md)
+
+Common flags available on most context commands:
+- `--dry-run` — preview changes without writing
+- `--json` — machine-readable output
+- `--status <reviewed|draft>` — set topic status on create or update
