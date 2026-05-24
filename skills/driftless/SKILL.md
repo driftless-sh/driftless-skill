@@ -192,13 +192,15 @@ Returns, per file: the relevant `topics` (direct/indirect), the deterministic `g
 - `status: "none"` → **no context covers this file.** Do not assume an unrelated topic applies. After you understand the code, create/anchor a topic (UC2).
 - `high_risk: true` and not strongly covered → auth/sensitive surface without solid context. Verify in code and document the invariant (UC2) **before** changing behavior.
 - Follow `recommended_action` literally:
-  - `create_or_link_reviewed_topic` / `create_or_link_topic` → UC2: add a topic for this area.
-  - `refresh_stale_topic` → UC2: update the stale topic against current code.
-  - `reattach_or_remove_topic` → the covering topic is orphaned; flag it for reattach/removal, do not rely on it.
-  - `review_suggested_topic` / `promote_draft_topic` → confirm/flesh out the topic before trusting it.
-  - `ok` → coverage is solid; proceed.
+  - `document-now` → high-risk surface with zero coverage. UC2: create a topic.
+  - `add-topic` → plain uncovered (not high-risk). UC2: add a topic.
+  - `refresh-stale` → topic is stale. UC2: update against current code.
+  - `reattach-or-remove` → only orphaned topics cover this. Flag for reattach/removal.
+  - `review-suggested` → auto-generated topic pending review. Confirm and flesh out.
+  - `promote-draft` → draft topic with potentially good content. Promote to reviewed.
+  - `none` → coverage is solid; proceed.
 
-Only `status: "reviewed"` + strong (`file`) coverage means "the loaded context is authoritative." Anything else means **verify against code, then re-anchor (UC2)** — this is how context stays true to the repo over time, not just at init.
+Only `status: "reviewed"` + strong (`file` or `component`) coverage means "the loaded context is authoritative." Anything else means **verify against code, then re-anchor (UC2)** — this is how context stays true to the repo over time, not just at init.
 
 ### If no topic exists for your area
 
