@@ -175,6 +175,8 @@ Flags: `--json` (machine-readable, for agents), `--depth N` (1–6, default 3), 
 
 `graph impact` is also the right pre-edit check for risky changes and the input to a careful PR.
 
+`driftless graph coverage --json` gives a repo-wide coverage summary: which components have reviewed context, which are gaps, which are at risk.
+
 **5. About to edit specific files — load context + coverage in one shot:**
 
 ```bash
@@ -185,8 +187,8 @@ Returns, per file: the relevant `topics` (direct/indirect), the deterministic `g
 
 **You MUST act on `coverage`, not just read it:**
 
-- `status: "reviewed"` with `match_specificity: "file"` → context is authoritative for this file. Proceed.
-- `status: "partial"` or `match_specificity` of `pattern`/`repo`/`weak` → a topic only *loosely* covers this file (broad pattern, not this exact file). Do **NOT** treat it as authoritative — verify against the actual code; if you learn something durable, update the topic (UC2).
+- `status: "reviewed"` with `match_specificity: "file"` or `"component"` → context is authoritative for this file. Proceed.
+- `status: "partial"` or `match_specificity` of `pattern`/`repo` → a topic only *loosely* covers this file (broad pattern, not this exact file). Do **NOT** treat it as authoritative — verify against the actual code; if you learn something durable, update the topic (UC2).
 - `status: "none"` → **no context covers this file.** Do not assume an unrelated topic applies. After you understand the code, create/anchor a topic (UC2).
 - `high_risk: true` and not strongly covered → auth/sensitive surface without solid context. Verify in code and document the invariant (UC2) **before** changing behavior.
 - Follow `recommended_action` literally:
@@ -248,12 +250,15 @@ driftless context add "<slug>" \
   --kind code-context \
   --tags area,label \
   --pattern "src/path/**"
+
+# Or anchor an existing doc file:
+driftless context add "<slug>" --file docs/auth.md --pattern "src/auth/**"
 ```
 
 **If syncing an existing file to a topic:**
 
 ```bash
-driftless context sync <slug> --file path/to/file.md
+driftless context sync <slug> --doc path/to/file.md
 ```
 
 ### What is worth saving

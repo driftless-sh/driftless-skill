@@ -355,7 +355,7 @@ Creates or appends to `AGENTS.md` at the repo root.
 | Variable | Default | Description |
 |---|---|---|
 | `DRIFTLESS_API_KEY` | — | API key for authentication |
-| `DRIFTLESS_API_URL` | `http://localhost:3000/api/v1` | Cloud API endpoint |
+| `DRIFTLESS_API_URL` | `https://api.driftless.icu/api/v1` | Cloud API endpoint |
 
 ---
 
