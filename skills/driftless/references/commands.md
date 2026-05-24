@@ -45,7 +45,9 @@ Run this first when starting in a new environment or debugging a broken setup. `
 
 ### `driftless init`
 
-Connects a repo to Driftless Cloud and bootstraps context from what already exists. Run once per repo from the repo root.
+Optional repo enrichment — scans the codebase, uploads structural metadata (not raw source files) to Driftless Cloud, and installs the agent skill. Useful for component discovery, code anchors, graph coverage, impact analysis, and stale context detection. Driftless works without init; you can create and use topics immediately.
+
+Run once per repo from the repo root when your team wants repo-aware features.
 
 ```bash
 driftless init

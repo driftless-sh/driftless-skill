@@ -33,7 +33,7 @@ Webhooks are one sync signal that keeps Cloud memory fresh.
 
 ### 2. CLI Init
 
-`driftless init` connects a repo:
+`driftless init` enriches a repo with structural metadata:
 - Runs the scanner locally (no git clone, structural metadata only — never source)
 - Builds the component baseline
 - Uploads structural metadata to Cloud
