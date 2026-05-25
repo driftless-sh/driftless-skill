@@ -2,7 +2,7 @@
 
 Structured catalog of common errors. Format: **Symptom** → **Cause** → **Solution**.
 
-For coverage status confusion, see `coverage-interpretation.md`. For topic field/kind questions, see `topic-anatomy.md`.
+For topic field/kind questions, see `topic-anatomy.md`.
 
 ---
 
@@ -135,41 +135,32 @@ If you see drift unexpectedly, the branch IS in the tracked set. Use `driftless 
 
 ---
 
-## Graph & coverage
+## PR bot
 
-### `graph file <path>` returns empty `entrypoints`
+### No comment appears on new PRs
 
-**Cause (most common):** No HTTP route reaches this file. It's a pure utility, a library function, or an internal-only service.
-
-**Cause (sometimes):** Scanner couldn't parse the file (low confidence). Components for the file are missing.
+**Cause:** The GitHub App isn't installed on the repo, or the repo isn't linked to the workspace.
 
 **Solution:**
-- Verify with `--depth 4` to extend reachability.
-- Open the file. If it's an entrypoint that should be detected (e.g. a NestJS `@Controller` or a Next.js page) but isn't, file an issue.
-- If it's intentionally not an entrypoint, the empty list is correct.
+- Confirm with `driftless doctor` — the GitHub App line will read `INFO: not installed` if missing.
+- Install the App at driftless.icu → Settings → Integrations.
+- Confirm the repo is in the workspace: `driftless context list --auto` (or open the dashboard).
 
-### `graph file` returns `guards: []` AND `global_guards: []`
+### PR comment shows everything as "outside any topic"
 
-**Cause:** The scanner found no `@UseGuards`, no `APP_GUARD`, and no Clerk `auth()`/`currentUser()` call.
+**Cause:** No topic anchors cover the files this PR touched.
 
-**Solution:** **DO NOT** assume the file is "public". The repo may use:
-- A composed auth decorator the scanner doesn't recognize.
-- A non-Clerk auth helper (custom middleware, Next.js middleware.ts).
-- An API gateway / reverse proxy that authenticates before the request reaches the app.
-
-Open the file and verify auth manually. If you confirm an auth pattern, document it as a topic (UC2) with an `invariant` so future agents see it.
-
-### `graph coverage --json` shows everything as "gap"
-
-**Cause:** Either no topics exist, or no topics have anchors (`patterns`).
-
-**Solution:**
-- `context list` — confirm topics exist.
-- For each topic, check `anchors` via `context get <slug>`.
-- Add anchors to topics that should claim files:
+**Solution:** That's the bot's job — close the gap. For each path in the comment's "files not anchored to any topic" section:
+- If the path belongs to an existing topic, extend it:
   ```bash
-  driftless context update <slug> --add-pattern "src/billing/**"
+  driftless context update <slug> --add-pattern "<glob>"
   ```
+- If the path is a new concept, create a topic:
+  ```bash
+  driftless context add <slug> --kind code-context --pattern "<glob>"
+  ```
+
+The next PR touching the same area will show those files as covered.
 
 ---
 
@@ -177,15 +168,22 @@ Open the file and verify auth manually. If you confirm an auth pattern, document
 
 ### `context add` rejected with "pattern matches 0 files locally"
 
-**Cause:** The glob you passed doesn't match any file in the current scan root. Prevents creating a topic anchored to nothing.
+**Cause:** The glob you passed doesn't match any file in this checkout. The validator runs `globSync` against the repo root before the API call and aborts the create/update so the topic isn't born already-stale.
 
 **Solution:**
-- Verify the glob is correct (try `ls src/billing/**` with shell glob expansion enabled).
-- If the path is correct but the scanner hasn't seen it, run `driftless init` to refresh the baseline (ASK the user first if not initialized for this repo).
+- Open a shell and verify the glob expands to real paths (e.g. `ls src/billing/**` with glob expansion).
+- Broaden the glob if needed: `src/billing/**` instead of `src/billing/*.ts`.
+- If the file isn't checked in yet, use `--where "src/billing/refunds/refund.service.ts"` to anchor by explicit path (no glob validation).
 
-### `⚠ over-broad anchor: covers 187 components`
+### `⚠ pattern matches only node_modules/dist/.git`
 
-**Cause:** Your pattern covers more than 100 components — almost certainly catch-all.
+**Cause:** Every file the glob hits is under `node_modules`, `dist`, `build`, `out`, `.git`, `coverage`, `.next`, `.turbo`, or `.pnpm-store`. Almost certainly you forgot a `src/` prefix or pointed at generated output.
+
+**Solution:** Re-anchor against source paths. The CLI treats this as a 0-real-match and blocks the write.
+
+### `⚠ over-broad anchor: covers 187 files`
+
+**Cause:** Your pattern matches more than 100 files — almost certainly catch-all.
 
 **Solution:** Split into narrower topics. The warning is non-blocking, but heeding it keeps `context get` results precise.
 ```bash
@@ -273,17 +271,33 @@ ls .driftless/assets/templates/           # verify
 
 **Solution:** Investigate — this usually means a workspace migration left stale references. Contact support if widespread, or manually clean up via `context link` from a real repo.
 
+### `context doctor` reports `zombie` topics
+
+**Cause:** The topic's anchor patterns matched files when written but every pattern now globs to 0 files in this checkout — usually after a rename, a folder move, or a refactor that didn't update the topic.
+
+**Solution:** Re-anchor or archive:
+```bash
+# Re-anchor to where the code lives now:
+driftless context update <slug> \
+  --remove-pattern "<old glob>" \
+  --add-pattern    "<new glob>"
+
+# Or if the concept is genuinely obsolete:
+driftless context delete <slug>
+```
+
 ### `context doctor` reports many `draft` topics
 
-**Cause:** Someone ran `driftless init --suggest` and the auto-generated drafts were never promoted.
+**Cause:** Suggested topics that were never promoted to `reviewed`.
 
 **Solution:**
 ```bash
 driftless context list --suggested
-# for each suggested topic:
+# for each suggested topic worth keeping:
 driftless context update <slug> --what "..." --how "..." --status reviewed
+# delete the rest:
+driftless context delete <slug>
 ```
-Or delete the ones that aren't worth promoting.
 
 ---
 
