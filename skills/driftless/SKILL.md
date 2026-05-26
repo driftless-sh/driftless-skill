@@ -90,6 +90,13 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 **Rule:** If it would have saved you time to know this upfront, save it now. Do NOT keep discoveries in conversation memory only. Cloud is the source of truth.
 
+Pick the topic kind before writing:
+
+- `code-context`, `integration-note`, `domain-map`: structured fields first.
+- `decision`, `roadmap`, `runbook`, `docs-note`, `operational-note`, `customer-insight`: markdown `--content` first, with structured fields as summary or durable review signals.
+
+For document-first topics, keep `--what` to one sentence and put the narrative in `--content`. Do not invent empty gotchas or decisions just because those fields exist.
+
 ### If a topic exists for the area
 
 Batch every related change into ONE update — each PATCH bumps version and writes a history event, so N small updates pollute the trail:

@@ -20,6 +20,47 @@ The `--kind` flag classifies a topic. The dashboard filters by kind; agents pick
 
 For the four "agent writes it" kinds, ship templates at `.driftless/assets/templates/<kind>.md`.
 
+## Shape by kind
+
+All topics share the same storage fields, but they should not all read like
+`code-context`. Pick the kind based on intent, then choose the shape.
+
+| Kind | Primary presentation | Agent guidance |
+|---|---|---|
+| `code-context` | Structured fields first | Use `--what`, `--how`, `--gotcha`, `--decision`, `--invariant`, `--check`, and anchors. Markdown content is optional source material. |
+| `integration-note` | Structured fields first | Capture service contract, auth, retry/idempotency, quirks, and failure modes. |
+| `domain-map` | Structured fields first | Capture boundaries, related areas, ownership, and anchors. Avoid catch-all repo maps unless they help first onboarding. |
+| `decision` | Markdown content first | Put the ADR narrative in `--content`; keep `--what` to one sentence; use `--decision` for the durable commitment. |
+| `roadmap` | Markdown content first | Put thesis, direction, phases, and next moves in `--content`; use checks for review gates. |
+| `runbook` | Markdown content first | Put trigger, diagnosis, procedure, rollback, and checks in `--content`; use gotchas for traps. |
+| `docs-note` | Markdown content first | Use for existing docs or source-of-truth notes; link related topics instead of duplicating implementation detail. |
+| `operational-note` | Markdown content first | Use for ops knowledge that is not yet a full runbook; add checks when repeatable. |
+| `customer-insight` | Markdown content first | Capture customer behavior and product implication; relate to implementation topics when needed. |
+
+Rule: `--what` is always the short summary. `--content` carries the full
+narrative for document-first topics. Do not invent empty gotchas or decisions
+just because the fields exist.
+
+Agent prompt guidance:
+
+```text
+Choose topic kind based on intent.
+
+Use code-context for implementation areas.
+Use decision for important product or architecture choices.
+Use roadmap for product direction, principles, and future UX shape.
+Use runbook for repeatable operational procedures.
+Use docs-note for documentation source-of-truth or publishing rules.
+Use integration-note for external systems and contracts.
+
+For roadmap, decision, runbook, docs-note, operational-note, and
+customer-insight topics, put the canonical narrative in --content markdown.
+Use --what as a one-sentence summary.
+Use --how only if there is an operational mechanism.
+Use --decision for durable commitments.
+Use --gotcha only for traps that would cause future mistakes.
+```
+
 ## Fields
 
 ### Required-ish (most topics have these)
