@@ -37,47 +37,9 @@ driftless doctor
 driftless doctor --json   # machine-readable: { ok, summary, checks[], workspace_diagnostics? }
 ```
 
-Verifies: CLI auth, API connectivity, git workspace, repo connection, baseline, AGENTS.md, GitHub App. The Workspace line shows the resolved slug and its source (`config` cache, `/me`, or `git-org`). On failure it prints structured diagnostics (tried slugs, `/me` status, failed endpoint).
+Verifies: CLI auth, API connectivity, git workspace, repo connection, AGENTS.md, GitHub App, and topic anchor health. The Workspace line shows the resolved slug and its source (`config` cache, `/me`, or `git-org`). On failure it prints structured diagnostics (tried slugs, `/me` status, failed endpoint).
 
 Run this first when starting in a new environment or debugging a broken setup. `--json` for agents/CI that parse the result.
-
----
-
-### `driftless init`
-
-Optional repo enrichment — scans the codebase, uploads structural metadata (not raw source files) to Driftless Cloud, and installs the agent skill. Useful for component discovery, code anchors, graph coverage, impact analysis, and stale context detection. Driftless works without init; you can create and use topics immediately.
-
-Run once per repo from the repo root when your team wants repo-aware features.
-
-```bash
-driftless init
-```
-
-What it does:
-1. Detects git remote → finds or creates workspace + repo record
-2. Scans the codebase → builds component map (controllers, services, guards, modules, DTOs)
-3. Uploads baseline to Cloud
-4. **Only with `--suggest`** (opt-in, off by default): creates one suggested topic per module (`suggested: true`) — drafts, not real context yet. Without the flag, no topics are created.
-5. Detects existing docs and reports them — does NOT auto-sync them (syncing is an intentional agent action)
-6. Installs the Driftless skill into CLAUDE.md and AGENTS.md
-
-Output example:
-```
-Repository: nippy-tech/profile_nippy_ms
-Workspace: nippy-tech (existing)
-Repo: profile_nippy_ms (connected)
-
-Scanning codebase...
-  Framework:    nestjs
-  Type:         api
-  Auth:         cognito, clerk, jwt, apikey
-  Endpoints:    155
-  Guards:       15
-  Services:     58
-  Modules:      17
-
-Done.
-```
 
 ---
 
@@ -89,7 +51,7 @@ Query and manage context topics — the team's shared repo knowledge.
 
 ```bash
 driftless context list
-driftless context list --suggested   # show auto-generated draft topics
+driftless context list --status draft
 driftless context list --stale      # topics whose anchored code changed
 driftless context list --kind code-context
 ```
@@ -142,7 +104,7 @@ driftless context add "<slug>" \
   --rel depends_on:token-refresh
 ```
 
-`--pattern` is **repeatable** — pass it multiple times for a multi-anchor topic. The CLI blocks creation if any pattern matches 0 files locally; emits a non-blocking `⚠ over-broad anchor` warning when the topic covers more than 100 components (healthy is 5–40 — see "Anchoring discipline" below).
+`--pattern` is **repeatable** — pass it multiple times for a multi-anchor topic. The CLI blocks creation if any pattern matches 0 files locally; emits a non-blocking `⚠ over-broad anchor` warning when the topic covers more than 100 files (healthy is 5–40 — see "Anchoring discipline" below).
 
 Other `context add` flags: `--what`, `--how`, `--where` (single file path), `--decisions`, `--gotchas`, `--ownership`, `--status <reviewed|draft>`, `--file` (content from file path), `--dry-run`.
 
@@ -187,13 +149,13 @@ driftless context update --help
 
 Patterns define which slice of the codebase a topic claims. Size matters:
 
-| Component count | Verdict |
+| File count | Verdict |
 |---|---|
 | 5–40 | Healthy — narrow enough to mean something specific |
 | 41–99 | Wide — verify it's truly one concept |
 | 100+ | Trap — almost always over-broad; the topic becomes a useless catch-all |
 
-The CLI emits `⚠ over-broad anchor` after `add`/`update` when the topic crosses 100 components. Don't suppress it — split into narrower topics instead.
+The CLI emits `⚠ over-broad anchor` after `add`/`update` when the topic crosses 100 files. Don't suppress it — split into narrower topics instead.
 
 **Good** (narrow, multi-anchor):
 ```bash
@@ -231,7 +193,7 @@ driftless context link <slug>
 
 Registers the repo you are currently in into the topic's `where_repos`. Touches only the repo list — `what`/`how`/`gotchas`/`decisions` are NOT modified. Use this when the same concept lives in another repo.
 
-`context get <slug>` then shows `used in (N repos): …` and groups components by repo. `context update` also auto-links the repo you run it from as a side effect — use `context link` when linking is all you want.
+`context get <slug>` then shows `used in (N repos): …`. `context update` also auto-links the repo you run it from as a side effect — use `context link` when linking is all you want.
 
 #### Sync a file or note to a topic
 
@@ -248,11 +210,11 @@ driftless context sync <slug> --doc path/to/file.md --files "src/auth/**"
 
 Stores the file's content as `file_content` on the topic. Useful for linking AGENTS.md sections, architecture docs, or runbooks.
 
-#### Load context for specific files
+#### Get context for specific files
 
 ```bash
 # Takes comma-separated file paths (not globs)
-driftless context load --files "src/auth/guard.ts,src/auth/service.ts"
+driftless context get --files "src/auth/guard.ts,src/auth/service.ts"
 ```
 
 Delivers context for all topics that match the given file paths. Use before starting work on a specific area. For local uncommitted changes, use `context get --diff` instead.
@@ -279,9 +241,8 @@ Reports — the deduped "what moved around my topics" signal, not a raw event fe
 - **Stale topics** — a topic whose covered code the team changed on a tracked branch since you last looked
 - **Team PR activity** — what teammates shipped against this repo's context (via the GitHub App)
 - **Tracking line** — which branches' pushes count as drift (the default branch is always tracked)
-- Suggested topics from `init --suggest` pending review
 
-No local diff. Pure Cloud state. Use `driftless context get --diff` when you need topics for your current *local* uncommitted changes. `context load` requires `--files` and does not support `--diff`.
+No local diff. Pure Cloud state. Use `driftless context get --diff` when you need topics for your current *local* uncommitted changes.
 
 ---
 
@@ -297,33 +258,6 @@ driftless branches --json
 ```
 
 A push to a non-tracked branch is recorded for audit but does **not** mark topics stale — a throwaway feature branch never creates false drift. This is why `sync` only surfaces drift from tracked branches.
-
----
-
-### `driftless graph`
-
-Deterministic code graph from the scanned components — no LLM. Run before editing a file to know its blast radius.
-
-```bash
-# Entrypoints (routes that reach it, with guards), upstream callers,
-# downstream deps, contracts (DTOs). Accepts repo-root OR scan-root paths.
-driftless graph file src/billing/billing.service.ts
-driftless graph file src/billing/billing.service.ts --json --depth 4
-
-# Blast radius: upstream consumers + reachable endpoints a change can break.
-driftless graph impact --files "src/billing/billing.service.ts"
-driftless graph impact --files "a.ts,b.ts" --direction both --json
-```
-
-Key fields: `entrypoints[]` (`method`, `path`, `handler`, `guards`, `guards_detected`), `upstream`, `downstream`, `contracts`, `global_guards` (repo-wide APP_GUARD), and per-component `confidence` + `evidence` (`file:line`).
-
-- `guards` populated:
-  - NestJS — the `@UseGuards(X)` name (e.g. `"AuthGuard"`); `APP_GUARD` providers go in `global_guards`.
-  - Next.js — `"clerk-auth"` when `auth()` / `currentUser()` from `@clerk/nextjs/server` is invoked in the file. Call-site `file:line` lives in `metadata.guard_evidence`.
-- `guards` empty AND `global_guards` empty → treat as **`no auth detected — verify`**, not "public" — may still be a composed/custom auth decorator or non-Clerk auth helper the scanner can't see.
-- `downstream` (Next.js/React) follows resolved `imports` edges: a page lists the `react-component`s it renders, a component lists the `react-hook`s it uses. Components/hooks are detected by shape (JSX / `use*` naming), and imports resolve file-locally (tsconfig paths + relative). Imports of untracked files (libs, services, node_modules) resolve to nothing by design.
-- `graph impact` default `--direction consumers` = what breaks; `dependencies` = what it uses; `both` = both.
-- `--depth N` 1–6 (default 3). `--json` for agents/CI.
 
 ---
 

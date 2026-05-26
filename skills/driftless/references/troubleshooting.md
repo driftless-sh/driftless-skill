@@ -48,17 +48,15 @@ If the slug is wrong, re-authenticate with a key from the correct workspace.
 
 ### `No topics found`
 
-**Cause:** Driftless was never initialized for this repo, OR the repo is connected but no one has created topics yet (topic-first onboarding).
+**Cause:** No one has created topics for this workspace/repo yet.
 
-**Solution:** Don't assume the repo needs `driftless init`. Create your first topic:
+**Solution:** Create the first topic:
 ```bash
 driftless context add onboarding-context \
   --kind domain-map \
   --what "Shared context map for this repo." \
   --how "Captures what humans and agents need to know."
 ```
-
-Ask the user before running `driftless init` — repo scan is optional enrichment.
 
 ### `context get <slug>` returns "stale"
 
@@ -97,7 +95,7 @@ If the area genuinely has no topic, create one (UC2).
 - If there are changes but no match, the touched files are uncovered — UC2 candidate.
 - For *team* drift (not your local), use `driftless sync` instead.
 
-### `context load --files "a.ts" --json` returns empty `topics`
+### `context get --files "a.ts" --json` returns empty `topics`
 
 **Cause:** No topic's patterns match `a.ts`.
 

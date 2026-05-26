@@ -2,29 +2,29 @@
 
 ## The Driftless Loop
 
-Every time an AI agent works on a Driftless-enabled repo, it must follow this loop:
+Every time an AI agent works on a Driftless-enabled repo, it follows this loop:
 
-```
-┌─────────────────────────────────────────────┐
-│  1. SYNC CLOUD STATE                        │
-│  driftless sync                             │
-│  What drifted around your topics + team PRs │
-├─────────────────────────────────────────────┤
-│  2. LOAD CONTEXT                            │
-│  driftless context get <feature>            │
-│  Understand what/where/how before coding    │
-├─────────────────────────────────────────────┤
-│  3. CHECK THE CODE GRAPH                    │
-│  driftless graph file <path>                │
-│  Read entrypoints, callers, deps, guards    │
-├─────────────────────────────────────────────┤
-│  4. IMPLEMENT                               │
-│  Write code following loaded context        │
-├─────────────────────────────────────────────┤
-│  5. UPDATE CONTEXT                          │
-│  driftless context get --diff               │
-│  Save durable discoveries before wrapping   │
-└─────────────────────────────────────────────┘
+```text
+1. SYNC CLOUD STATE
+   driftless sync
+   Read drift, stale topics, PR activity, and tracked branches.
+
+2. RETRIEVE TOPIC CONTEXT
+   driftless context get <slug>
+   driftless context get --files "path/to/file.ts"
+   Understand what/how/gotchas/decisions before editing.
+
+3. IMPLEMENT
+   Make the change using the retrieved topic context.
+
+4. UPDATE TOPICS
+   driftless context update <slug> --gotcha "..." --decision "..."
+   Persist durable discoveries.
+
+5. REFRESH BEFORE FINISHING
+   driftless sync
+   driftless context get --diff
+   Confirm the local diff lines up with current context.
 ```
 
 ## Step 1: Sync Cloud State
@@ -35,100 +35,96 @@ Run this first when starting or resuming:
 driftless sync
 ```
 
-Read **stale topics** (a topic whose covered code the team changed on a **tracked branch** since you last looked), **team PR activity**, the **tracking line** (which branches count as drift — the default branch is always tracked; `driftless branches` to view/change), and suggested topics. It is the deduped "what drifted around me" signal, not a raw event feed. If a topic is stale, inspect current code before relying on it. For your own *local* uncommitted changes use `driftless context get --diff` instead (no GitHub App needed).
+Read stale topics, team PR activity, and the tracking line. Drift is scoped to tracked branches: the default branch is always tracked, and teams can add extra branches with `driftless branches`.
 
-## Step 2: Load Context
+If a topic is stale, inspect current code before relying on old assumptions. For your own local uncommitted changes, use `driftless context get --diff`.
 
-Before touching code that deals with endpoints, auth, services, modules, or package boundaries:
+## Step 2: Retrieve Topic Context
+
+If you know the topic:
 
 ```bash
-driftless context get <feature>
+driftless context get <slug>
 ```
 
-You get:
-- `what` — description of the feature/concept
-- `how` — implementation patterns in use
-- `where` — canonical file paths
-- `gotchas` — known traps
+If you know the files:
+
+```bash
+driftless context get --files "src/auth/guard.ts,src/auth/service.ts"
+```
+
+Read:
+
+- `what` — what this area does
+- `how` — implementation patterns
+- `gotchas` — traps and edge cases
 - `decisions` — why the team chose this shape
-- `history` — recent changes and PRs that touched it
+- `invariants` — what must stay true
+- `required_checks` — what to run or inspect before finishing
+- `anchors` — the files, patterns, and repos the topic claims
 
-If no topic exists:
+If no topic exists, inspect enough code to understand the area, then create a topic or add an anchor to the closest existing one.
 
-```bash
-driftless context list
-```
+## Step 3: Implement
 
-After you understand the area, create or update a topic.
+Write code following the retrieved context. If the current implementation contradicts stored context, treat that as a context drift signal: verify reality, then update the topic.
 
-## Step 3: Understand Blast Radius
+## Step 4: Update Topics
 
-Context is the team's intent. The code graph is deterministic reality:
-
-```bash
-driftless graph file <path-you-are-about-to-edit>
-driftless graph impact --files "<path>"
-```
-
-Use it to answer:
-- Which HTTP routes reach this code, and what guards protect them.
-- Who calls it (`upstream`) vs. what it depends on (`downstream`).
-- Which DTOs/contracts it accepts.
-
-`guards` empty AND `global_guards` empty means `no auth detected — verify`, not "public".
-
-## Step 4: Implement
-
-Write code following the loaded context and verified graph facts. If the current implementation contradicts stored context, update the context after checking the code.
-
-## Step 5: Update Context
-
-Before wrapping up, load the context for your local diff:
-
-```bash
-driftless context get --diff
-```
-
-If you learned something durable, save it. **Batch every related change into ONE `update` call** — each PATCH bumps `version` and writes a history event, so N small updates pollute the trail:
+If you learned something durable, save it. Batch related changes into one update:
 
 ```bash
 driftless context update <slug> \
   --gotcha "Webhooks arrive out-of-order — idempotency key required" \
-  --gotcha "Refund > 90 days breaks reconciliation" \
-  --decision "Async webhook handler chosen to absorb retry storms" \
+  --decision "Async handler chosen to absorb retry storms" \
+  --invariant "Webhook handlers must be idempotent" \
+  --check "Replay duplicate event ids before merging" \
   --add-pattern "src/billing/webhooks/**"
 ```
 
-Append flags (`--gotcha`, `--decision`, `--invariant`, `--check`) are repeatable and additive — every value lands atomically under a row lock, so concurrent agents don't lose appends.
+Append flags (`--gotcha`, `--decision`, `--invariant`, `--check`) are additive. Prefer them over plural replace flags unless you intentionally want to replace the whole field.
 
-If no topic covers the area, create one — multi-anchor with `--pattern` repeated keeps the topic narrow:
+If no topic covers the area:
 
 ```bash
-driftless context add "payment-module" \
-  --what "Handles all payment processing via Stripe" \
-  --how "PaymentsService → StripeAdapter; webhooks live in webhooks/" \
+driftless context add payment-module \
+  --kind code-context \
+  --what "Handles payment processing" \
+  --how "PaymentsService delegates to StripeAdapter; webhooks live in webhooks/" \
   --pattern "src/payments/**" \
   --pattern "src/billing/webhooks/**"
 ```
 
-This becomes team memory. Every agent can query it with `driftless context get payment-module`.
+## Step 5: Refresh Before Finishing
 
-## Anchoring discipline
+Before wrapping up:
 
-Patterns claim a slice of the codebase. Healthy topics anchor **5–40 components**; anything past **100** is almost always over-broad — the topic devolves into a catch-all and `context get` returns generic guidance instead of the precise thing you needed. The CLI emits a non-blocking `⚠ over-broad anchor` warning when you cross the threshold; **split into narrower topics rather than suppress it**.
-
-Good (narrow, conceptual):
 ```bash
-driftless context add "checkout-flow" \
-  --pattern "src/checkout/**" --pattern "src/cart/**"
+driftless sync
+driftless context get --diff
 ```
 
-Bad (catch-all that will rot):
+If `--diff` matches a stale topic that your change touches, update it before pushing.
+
+## Anchoring Discipline
+
+Patterns claim a slice of the codebase. Healthy topics anchor about 5-40 files. Anything above 100 is usually too broad.
+
+Good:
+
 ```bash
-driftless context add "backend" --pattern "src/**"   # don't
+driftless context add checkout-flow \
+  --pattern "src/checkout/**" \
+  --pattern "src/cart/**"
 ```
 
-Manage patterns over time without clobbering the rest of the topic:
+Bad:
+
+```bash
+driftless context add backend --pattern "src/**"
+```
+
+Use `--add-pattern` and `--remove-pattern` to evolve anchors without clobbering the rest of the topic:
 
 ```bash
 driftless context update billing-flow \
@@ -136,27 +132,30 @@ driftless context update billing-flow \
   --remove-pattern "src/billing/legacy/**"
 ```
 
-Both are idempotent (re-running is a no-op).
+## Linking Topics
 
-## Linking topics with `[[slug]]`
-
-Topics are not islands. When something only makes sense in the context of another topic, link instead of duplicate. Inside any free-text field (`--what`, `--how`, `--decisions`, `--gotcha`, `--invariant`, `--ownership`), write `[[other-topic-slug]]` and the API records the link automatically on every create/update.
+Use `[[slug]]` in free-text fields when a gotcha or decision depends on another topic:
 
 ```bash
 driftless context update refund-flow \
-  --gotcha "Same race as [[stripe-webhook-ingest]]" \
-  --decision "Idempotency-key derived from charge_id, mirroring [[payment-gateway]]"
+  --gotcha "Same idempotency race as [[stripe-webhook-ingest]]"
 ```
 
-`context get refund-flow` then shows a `references` section listing the forward links; `context get payment-gateway` shows `referenced by: refund-flow`. The dashboard renders each `[[slug]]` as a clickable link.
+Use typed relations for strong graph edges:
 
-**When to link:**
-- A gotcha only makes sense if you already know another topic — link instead of restating.
-- A decision is the consequence of an earlier decision recorded elsewhere — link.
-- Two topics describe parts of the same flow — link both directions.
+```bash
+driftless context update refund-flow --rel depends_on:stripe-webhook-ingest
+driftless context relations refund-flow
+driftless context graph refund-flow
+```
 
-**When NOT to link:**
-- The slug just sounds vaguely related — don't.
-- The target topic doesn't exist yet — either create it first, or skip the link. Dead links sit silently in the data and never produce a backlink, so the trace rots invisibly.
+## PR Bot Loop
 
-Slug grammar: lowercase alphanumerics + hyphens, must start with `[a-z0-9]`. Self-references are stripped automatically.
+Every PR comment shows:
+
+- Topics matched by changed files.
+- Decisions and gotchas relevant to review.
+- Files outside any topic.
+- Suggested commands to add anchors or create topics.
+
+Use those gaps to grow the topic layer over time.

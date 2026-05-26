@@ -2,99 +2,96 @@
 
 ## What Cloud Stores
 
-Driftless Cloud is the **source of truth** for your team's codebase memory. It is not local session memory. It is shared, durable context kept updated through scans, repo activity, and agent updates.
-
-### Data Stored In Cloud
+Driftless Cloud is the source of truth for the team's durable context. It is not local session memory. It stores topics, anchors, relations, repo links, PR activity, and audit history so humans and agents can retrieve the right context before touching files.
 
 | Entity | Description |
-|--------|-------------|
-| **Workspaces** | One per organization (maps to Clerk org) |
+|---|---|
+| **Workspaces** | One per organization or team |
 | **Repos** | Connected repositories per workspace |
-| **Components** | Codebase component map (endpoints, guards, services, modules) |
-| **Component Relations** | How components connect (uses_guard, depends_on, calls, imports) |
-| **Topics** | Context topics — what, how, where, gotchas, decisions |
-| **Topic Activity** | History of changes to a topic's covered files |
-| **Context Events** | Per-component event history |
-| **Integrations** | GitHub App installation links |
-| **Pending Installations** | App installs awaiting a repo to link to — linking is order-independent |
+| **Topics** | Durable context: what, how, gotchas, decisions, invariants, checks |
+| **Topic Anchors** | `patterns`, `where_files`, and `where_repos` that connect topics to files/repos |
+| **Topic Relations** | Typed edges between topics: depends_on, relates_to, supersedes, blocks, implements, documents, risk_for |
+| **Topic Activity** | History of topic changes and file drift signals |
+| **PR Observations** | Pull request metadata, matched topics, covered files, and uncovered file gaps |
+| **Integrations** | GitHub App installation links and delivery settings |
+| **Pending Installations** | GitHub installs awaiting a repo/workspace link |
 | **API Keys** | Per-workspace authentication keys for CLI/agents |
+
+Cloud stores topic text and metadata. It does not need source-code bodies to deliver context.
 
 ## How Cloud Stays Updated
 
-### 1. Webhooks
+### 1. Topic Writes
+
+Humans and agents create and update topics:
+
+```bash
+driftless context add <slug> --what "..." --how "..." --pattern "src/auth/**"
+driftless context update <slug> --gotcha "..." --decision "..."
+```
+
+This is the primary growth path. If a session reveals durable knowledge, append it to the matching topic before finishing.
+
+### 2. Anchors
+
+Anchors make topics show up at the moment of work:
+
+- `patterns` match repository-relative globs.
+- `where_files` match explicit files.
+- `where_repos` records which repos use a topic.
+
+The CLI validates patterns against the local checkout before writing. A zero-match pattern is blocked; an over-broad pattern is warned.
+
+### 3. GitHub PR Activity
 
 GitHub pushes and PR activity go to Cloud:
-- Stores repo activity metadata (all branches, for audit)
-- Marks a topic **stale** when covered code changes on a **tracked branch** (the default branch is always tracked; see `driftless branches`)
-- Creates activity + context events
-- Posts a short **nudge** comment on PRs that touch a topic (a heads-up, not a linter — it never blocks the PR)
 
-Webhooks are one sync signal that keeps Cloud memory fresh.
+- Stores repo activity metadata for audit.
+- Marks a topic stale when anchored files change on a tracked branch.
+- Posts a PR comment showing matched topics and uncovered files.
+- Suggests the next command to close gaps: add a pattern to an existing topic or create a new topic.
 
-### 2. CLI Init
+The bot informs; it never blocks.
 
-`driftless init` enriches a repo with structural metadata:
-- Runs the scanner locally (no git clone, structural metadata only — never source)
-- Builds the component baseline
-- Uploads structural metadata to Cloud
-- **Only with `--suggest`**: suggests draft topics for modules (off by default)
-- Reports existing docs for intentional syncing
-- Reconciles a pending GitHub App install for this repo's org, if any (order-independent linking)
+### 4. Agent Refresh
 
-### 3. Agent Updates
+Agents use:
 
-Agents use `driftless context add`, `context update`, and `context sync` to persist durable discoveries. This is how team memory improves after real work.
+```bash
+driftless sync
+driftless context get --files "src/path/file.ts"
+driftless context get --diff
+```
 
-## The Scanner
-
-### Pass 1 — Identity
-
-Reads `package.json`, `tsconfig.json`, folder structure:
-- Framework (NestJS, Express, Next.js)
-- System type (API, app, CLI, library)
-- Language (v1: TypeScript only)
-- Auth patterns (Clerk, Cognito, JWT, API key)
-
-### Pass 2 — Component Map
-
-AST traversal using the TypeScript Compiler API (`ts.createSourceFile` per file — no global Project, streaming, no OOM):
-- `@Controller`, `@Get`, `@Post` -> endpoints
-- `@UseGuards(Guard)` -> guard relations
-- `@Injectable()` -> services
-- `@Module()` -> modules
-- Extracts HTTP methods, paths, line numbers
-
-### Pass 3 — Context Coverage
-
-Compares topics to components and files:
-- Which files are strongly covered by reviewed topics
-- Which areas only have broad or draft coverage
-- Which high-risk files have no durable context
+`sync` pulls drift and PR signals. `context get --files` retrieves topic context before editing. `context get --diff` retrieves topics touched by local uncommitted changes before finishing.
 
 ## Auth Model
 
-| Path | Auth Method | Use Case |
-|------|-------------|----------|
-| Dashboard | Clerk (JWT + orgId) | Browser-based management |
-| CLI | X-API-Key header | Agents and scripts |
+| Surface | Auth Method | Use Case |
+|---|---|---|
+| Dashboard | Clerk session + organization | Browser management |
+| CLI | `X-API-Key` | Agents, scripts, local dev |
+| MCP | OAuth bearer or API key | ChatGPT/Claude/local MCP clients |
 | Webhooks | HMAC-SHA256 | GitHub events |
 
 ## Multi-Tenancy
 
-Each workspace is fully isolated:
-- Separate repos and components
+Each workspace is isolated:
+
+- Separate repos
 - Separate topics
+- Separate topic relations
 - Separate API keys
 - Separate integrations
 
-One Clerk organization = one Driftless workspace = one tenant.
+One organization maps to one Driftless workspace.
 
 ## Tech Stack
 
 - **API**: NestJS + TypeScript
-- **Database**: PostgreSQL (Supabase)
-- **Auth**: Clerk (organizations) + API keys
-- **Scanner**: TypeScript Compiler API (`ts.createSourceFile`, streaming, no OOM)
+- **Database**: PostgreSQL via Supabase
+- **Auth**: Clerk organizations + encrypted API keys + OAuth for MCP
 - **CLI**: Node.js, published via npm
-- **Dashboard**: React + Vite, deployed via Vercel
-- **Infra**: Render (API), Vercel (dashboard), Supabase (DB)
+- **Dashboard**: React + Vite
+- **MCP**: protocol adapter that calls the REST API
+- **Infra**: Render, Vercel, Supabase

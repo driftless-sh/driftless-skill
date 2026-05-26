@@ -1,6 +1,6 @@
 ---
 name: driftless
-description: Driftless is the team's shared context layer for AI coding agents in TypeScript / NestJS / Next.js / React repos. Topics are durable engineering memory persisted in Cloud — what / how / gotchas / decisions / invariants / checks — anchored to globs that point at real source files. The PR bot reads each merged change against the topic layer and surfaces coverage gaps directly in the PR comment, so the team learns what to document next without running any background scanner. It informs and never blocks. Use BEFORE editing code to pull team context (`context get` / `context search`), AFTER discovering a gotcha or architectural decision to persist it (`context update` / `context add`), when RESUMING work to see what drifted around your topics (`sync`), and BEFORE committing to refresh context for your local diff (`context get --diff`). Triggers in repos containing `.driftless/` or an `AGENTS.md` mentioning Driftless, and on phrases like "starting work", "resuming", "what changed since", "how does X work in this repo", "found a gotcha", "about to push", "context get", "context add", "context update", "driftless sync", "driftless".
+description: Driftless is the team's shared context layer for AI coding agents in any repo. Topics are durable engineering memory persisted in Cloud — what / how / gotchas / decisions / invariants / checks — anchored to globs that point at real files. The PR bot reads each merged change against the topic layer and surfaces coverage gaps directly in the PR comment, so the team learns what to document next. It informs and never blocks. Use BEFORE editing code to pull team context (`context get` / `context search`), AFTER discovering a gotcha or architectural decision to persist it (`context update` / `context add`), when RESUMING work to see what drifted around your topics (`sync`), and BEFORE committing to refresh context for your local diff (`context get --diff`). Triggers in repos containing `.driftless/` or an `AGENTS.md` mentioning Driftless, and on phrases like "starting work", "resuming", "what changed since", "how does X work in this repo", "found a gotcha", "about to push", "context get", "context add", "context update", "driftless sync", "driftless".
 license: MIT
 metadata:
   author: Driftless
@@ -13,7 +13,7 @@ metadata:
 
 Cloud is the source of truth. You pull team context before coding and persist what you learn back to Cloud. You do not own topics — the team does.
 
-Driftless is a context + drift-awareness layer. It informs; it never blocks. There is no background scanner: topics are anchored to globs, the PR bot reports coverage on every PR, and gaps surface as nudges in the comment rather than as out-of-band reports.
+Driftless is a context + drift-awareness layer. It informs; it never blocks. Topics are anchored to globs, the PR bot reports coverage on every PR, and gaps surface as nudges in the comment rather than as out-of-band reports.
 
 ## When to use this skill
 
@@ -45,7 +45,7 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 ---
 
-## Use Case 1 — Load context BEFORE editing code
+## Use Case 1 — Retrieve context BEFORE editing code
 
 **Trigger:** You are about to modify any module, feature, endpoint, service, or package boundary.
 
@@ -227,7 +227,7 @@ Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`
 
 **Trigger:** `driftless context list` returns empty, or you just ran `driftless install-skill` for the first time.
 
-Driftless is a notetaker, not an indexer. Onboarding is three commands — no repo scan, no background job.
+Driftless is a notetaker, not an indexer. Onboarding is three commands: authenticate, install the skill, create the first topic.
 
 ### Steps (~60 seconds)
 
@@ -281,7 +281,7 @@ You don't need to document everything upfront. The PR bot does the prompting:
 - Every PR posts a comment summarising **which topics it touched** and **how many files in the PR were not covered by any topic**.
 - For the uncovered files, the bot suggests the next step inline: `context update <slug> --add-pattern "<glob>"` to extend an existing topic, or `context add <slug> --pattern "<glob>"` to create a new one.
 
-That feedback loop is the engine of growth — not a scanner running in the background.
+That feedback loop is the engine of growth.
 
 ---
 
@@ -410,7 +410,7 @@ For the full catalog, see `references/troubleshooting.md`.
 - **Do NOT skip `driftless sync`.** Drift detection is the safety net — if the team changed something around your topic, you want to know before you write code.
 - **Do NOT split a discovery into N updates.** Every PATCH bumps version and writes a history event. Batch related `--gotcha` / `--decision` / `--add-pattern` into one invocation.
 - **Do NOT create catch-all topics** (`--pattern "src/**"`). One topic per concept; multi-anchor instead.
-- **Use the PR comment as your gap-finder.** When the bot lists uncovered files, that is the precise place to add a pattern or a new topic — no scanner needed.
+- **Use the PR comment as your gap-finder.** When the bot lists uncovered files, that is the precise place to add a pattern or a new topic.
 
 ---
 
