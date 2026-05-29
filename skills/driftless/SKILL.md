@@ -1,10 +1,10 @@
 ---
 name: driftless
-description: Driftless is the team's shared context layer for AI coding agents in any repo. Topics are durable engineering memory persisted in Cloud — what / how / gotchas / decisions / invariants / checks — anchored to globs that point at real files. The PR bot reads each merged change against the topic layer and surfaces coverage gaps directly in the PR comment, so the team learns what to document next. It informs and never blocks. Use BEFORE editing code to pull team context (`context get` / `context search`), AFTER discovering a gotcha or architectural decision to persist it (`context update` / `context add`), when RESUMING work to see what drifted around your topics (`sync`), and BEFORE committing to refresh context for your local diff (`context get --diff`). Triggers in repos containing `.driftless/` or an `AGENTS.md` mentioning Driftless, and on phrases like "starting work", "resuming", "what changed since", "how does X work in this repo", "found a gotcha", "about to push", "context get", "context add", "context update", "driftless sync", "driftless".
+description: Driftless is the team's shared context layer for AI coding agents in any repo. Topics are durable engineering memory persisted in Cloud — what / how / gotchas / decisions / invariants / checks — anchored to globs that point at real files. The core loop is simple — persist what you learn after each session, pull it back the next time you touch that area. On a PR that touches a documented area, the bot delivers the team's recorded context (gotchas / decisions / invariants) to the reviewer; it informs and never blocks. Use BEFORE editing code to pull team context (`context get` / `context search`) — drifted topics carry a freshness badge inline — and AFTER discovering a gotcha or architectural decision to persist it (`context update` / `context add`). Triggers in repos containing `.driftless/` or an `AGENTS.md` mentioning Driftless, and on phrases like "starting work", "how does X work in this repo", "found a gotcha", "about to push", "context get", "context add", "context update", "driftless".
 license: MIT
 metadata:
   author: Driftless
-  version: 3.0.0
+  version: 3.1.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -13,13 +13,13 @@ metadata:
 
 Cloud is the source of truth. You pull team context before coding and persist what you learn back to Cloud. You do not own topics — the team does.
 
-Driftless is a context + drift-awareness layer. It informs; it never blocks. Topics are anchored to globs, the PR bot reports coverage on every PR, and gaps surface as nudges in the comment rather than as out-of-band reports.
+Driftless is a team-memory layer. It informs; it never blocks. Topics are anchored to globs. The core loop is simple: after a session you persist what you learned; before touching an area you pull what the team already knows. Drift surfaces as a freshness badge on the topic itself when you retrieve it — not as a report you must go fetch. On a PR, the bot delivers the recorded context to the reviewer; it never scores coverage.
 
 ## When to use this skill
 
 - Starting or resuming a session in any repo that contains `.driftless/` or has an `AGENTS.md` mentioning Driftless.
 - About to edit any file or module — you need the team's prior context (what / how / gotchas / decisions / invariants) before touching code.
-- You returned after time away and need to catch up on what the team changed around your topics.
+- You returned after time away — when you pull a topic, a freshness badge tells you if its code changed while you were gone.
 - You discovered a gotcha, a decision, an invariant — something durable that future agents and teammates should know.
 - About to commit or push — you want to refresh context for your local diff and update anything that drifted.
 - You suspect the context layer itself may be untrustworthy (stale, orphaned, zombie, draft-heavy).
@@ -30,14 +30,16 @@ Before anything else, route on the situation:
 
 | Situation | First command |
 |---|---|
-| Empty workspace, no topics yet | UC0 — `driftless login` then `driftless install-skill` then create your first topic |
-| Starting or resuming work on a feature | `driftless sync` then `driftless context search <kw>` / `context get <slug>` (UC1) |
-| About to edit a specific file | `driftless context get --files "<path>"` (UC1) |
+| Empty workspace / your first topics | UC0 — `driftless login` then `driftless install-skill`, then just work and persist what you learn (UC2) |
+| About to edit a specific file (you have topics) | `driftless context get --files "<path>"` — drifted topics show a ⚠ badge inline (UC1) |
+| Looking for context on an area | `driftless context search <kw>` / `context get <slug>` (UC1) |
 | Learned something worth keeping | UC2 — `driftless context update <slug>` (or `add` if no topic) |
-| About to commit or push | `driftless sync` then `driftless context get --diff` (UC3) |
+| About to commit or push | `driftless context get --diff` (UC3) |
 | Need to know if context itself is trustworthy | `driftless context doctor` |
 
-`driftless sync` pulls Cloud state for the current repo — **stale topics** (a topic whose covered code the team changed on a tracked branch since you last looked), **team PR activity**, and suggested topics pending review. It is the deduped "what drifted around my topics" signal, not a raw event feed.
+The everyday loop is two moves: **persist what you learn after a session** (UC2), and **pull it back before you touch that area again** (UC1). You do not start with a command — early on there is little to pull, so you mostly persist; retrieval starts paying off once you have a handful of topics.
+
+`driftless sync` is an **optional** team-wide digest — stale topics, team PR activity, suggested topics — for when you want to scan everything that moved at once. You almost never need it, and you do not run it to start: drift already reaches you as a freshness badge when you `context get` the area you are working on (UC1).
 
 Drift is **scoped to tracked branches**: a topic only goes stale when its covered code changes on the repo's default branch (auto-detected — main/master/whatever) or an extra branch the team opted into. A push to a throwaway feature branch is recorded but never creates false drift. `driftless branches` shows/sets the tracked set; `sync` prints it as the `tracking:` line.
 
@@ -51,10 +53,7 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 **Steps:**
 
-1. **Sync first** (skip only if you ran it less than ~10 min ago):
-   ```bash
-   driftless sync
-   ```
+1. **Pull context directly — no sync ritual.** Drifted topics carry a ⚠ freshness badge in every result, so you don't run `sync` first. Go straight to retrieval:
 
 2. **If you know the slug**, get the topic directly. Otherwise search:
    ```bash
@@ -283,12 +282,9 @@ driftless context doctor
 
 ### How topics grow over time
 
-You don't need to document everything upfront. The PR bot does the prompting:
+You don't document everything upfront. Topics grow from one habit: **after a session, you persist what you learned** (UC2) — the gotcha that bit you, the decision you made, the invariant you had to respect.
 
-- Every PR posts a comment summarising **which topics it touched** and **how many files in the PR were not covered by any topic**.
-- For the uncovered files, the bot suggests the next step inline: `context update <slug> --add-pattern "<glob>"` to extend an existing topic, or `context add <slug> --pattern "<glob>"` to create a new one.
-
-That feedback loop is the engine of growth.
+The value compounds with the count. With one or two topics there is little to pull; from a handful onward, pulling context before you edit starts paying for itself every session — and a teammate's agent gets the same memory the next time they touch that area.
 
 ---
 
@@ -297,8 +293,7 @@ That feedback loop is the engine of growth.
 **Trigger:** About to commit, push, or wrap up the task.
 
 ```bash
-driftless sync                          # catch up on what the team pushed while you worked
-driftless context get --diff            # topics matching your local uncommitted changes
+driftless context get --diff            # topics matching your local uncommitted changes — stale ones show a ⚠ badge
 ```
 
 If `--diff` surfaces a stale topic that your change touches, update it (UC2) BEFORE pushing. The point of pre-commit is to leave the context layer healthier than you found it.
@@ -312,7 +307,6 @@ If `--diff` surfaces a stale topic that your change touches, update it (UC2) BEF
 
 **Actions:**
 ```bash
-driftless sync
 driftless context search refund                      # → no match
 driftless context get billing                        # → existing topic, read decisions + gotchas
 driftless context get --files "src/billing/refunds/refund.service.ts,src/billing/refunds/refund.controller.ts"
@@ -354,8 +348,7 @@ driftless context add onboarding-context \
 
 **Actions:**
 ```bash
-driftless sync                                        # stale topics? team PRs?
-driftless context get --diff                          # topics matching local diff
+driftless context get --diff                          # topics matching local diff — stale ones show a ⚠ badge
 # If any topic is stale and your change touched it, update before pushing:
 driftless context update <slug> --gotcha "…" --decision "…"
 git push
@@ -372,20 +365,13 @@ driftless context doctor
 # For zombies: context update <slug> --remove-pattern "<old>" --add-pattern "<new>" — or archive if obsolete.
 ```
 
-### Example 6 — PR bot surfaces a gap
-**User says (in PR review):** "The Driftless comment says 6 files in this PR aren't covered by any topic."
+### Example 6 — A teammate is reviewing your PR
+**Situation:** Your PR touches files anchored to `billing-flow`. The Driftless bot posts one comment on the PR with what the team recorded about that area.
 
-**Actions:**
+**What happens:** The reviewer — who isn't running the CLI — sees the gotchas, decisions and invariants for `billing-flow` right in the PR, so they review *with* the context instead of without it. If the topic is stale, the comment flags it. There is nothing to "fix" — but if your change altered how the area works, update the topic so the note stays true:
 ```bash
-# Look at the listed paths in the comment's "files not anchored to any topic" section.
-# If they belong to an existing topic:
-driftless context update <slug> --add-pattern "<glob covering those paths>"
-# If they form a new concept:
-driftless context add <slug> \
-  --kind code-context \
-  --content @.driftless/assets/templates/code-context.md \
-  --pattern "<glob covering those paths>"
-# The next PR touching the same area will show those files as covered.
+driftless context update billing-flow \
+  --gotcha "..." --decision "..."   # keep the team's memory honest
 ```
 
 ---
@@ -414,10 +400,10 @@ For the full catalog, see `references/troubleshooting.md`.
 
 - **Quality of a topic matters more than speed.** Narrow anchors, batched updates, real causal `[[links]]`. A noisy topic rots; a precise one compounds.
 - **Trust the pattern validator.** When the CLI says a glob matches 0 real files, do not force it — the topic will be a zombie before it is useful.
-- **Do NOT skip `driftless sync`.** Drift detection is the safety net — if the team changed something around your topic, you want to know before you write code.
+- **Persist after every session.** The loop only works if what you learned goes back to Cloud (UC2). A gotcha you discover but don't write down is lost — don't leave it in conversation memory.
 - **Do NOT split a discovery into N updates.** Every PATCH bumps version and writes a history event. Batch related `--gotcha` / `--decision` / `--add-pattern` into one invocation.
 - **Do NOT create catch-all topics** (`--pattern "src/**"`). One topic per concept; multi-anchor instead.
-- **Use the PR comment as your gap-finder.** When the bot lists uncovered files, that is the precise place to add a pattern or a new topic.
+- **The PR comment is for the reviewer, not a gap-finder.** It delivers the team's recorded context to whoever reviews — it does not score coverage or assign homework.
 
 ---
 
