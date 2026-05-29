@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.1.0
+  version: 3.2.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -89,12 +89,11 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 **Rule:** If it would have saved you time to know this upfront, save it now. Do NOT keep discoveries in conversation memory only. Cloud is the source of truth.
 
-Pick the topic kind before writing:
+**Write the topic as markdown `--content` — for every kind.** The content body IS the topic: a clear, readable explanation, like a good doc. `kind` is just a label (the filter/icon it gets), not a different shape — don't pick a kind to decide "structured vs prose"; everything is content-first.
 
-- `code-context`, `integration-note`, `domain-map`: structured fields first.
-- `decision`, `roadmap`, `runbook`, `docs-note`, `operational-note`, `customer-insight`: markdown `--content` first, with structured fields as summary or durable review signals.
+Keep `--what` to one tight sentence (the summary shown in lists) and put the real explanation in `--content`.
 
-For document-first topics, keep `--what` to one sentence and put the narrative in `--content`. Do not invent empty gotchas or decisions just because those fields exist.
+The structured fields (`--gotcha`, `--decision`, `--invariant`, `--check`) are **optional highlights** — add one only when you want that specific thing surfaced to the machine (the PR bot, a future agent's brief) *on top of* the content. **Never invent an empty gotcha/decision just because the flag exists.** Anchors (`--pattern`) are a separate axis — they're the file-matching, and they're always worth setting.
 
 ### If a topic exists for the area
 
@@ -125,17 +124,17 @@ Trust the validator. If it says 0 matches, the topic would have been instantly s
 
 ### If no topic covers this area
 
-Use the matching template from `.driftless/assets/templates/` as the body. Each `--kind` has its own idiom — don't invent the structure.
+Write the `--content` body yourself, then tag it with the kind that fits. There are three starter templates in `.driftless/assets/templates/` — use one as scaffolding if it helps, but the content is what matters, not the form.
 
 ```bash
-# Code-context topic — what/how/where + gotchas/decisions
+# Engineering knowledge — code, systems, integrations, domain maps (the default)
 driftless context add billing-flow \
-  --kind code-context \
-  --content @.driftless/assets/templates/code-context.md \
+  --kind reference \
+  --content @.driftless/assets/templates/reference.md \
   --pattern "src/billing/**" --pattern "src/checkout/**" \
   --tags billing
 
-# Architecture decision (ADR) — context/options/decision/consequences
+# Architecture/product decision (ADR) — context/options/decision/consequences
 driftless context add async-webhook-handler \
   --kind decision \
   --content @.driftless/assets/templates/decision.md
@@ -144,14 +143,9 @@ driftless context add async-webhook-handler \
 driftless context add stripe-webhook-replay \
   --kind runbook \
   --content @.driftless/assets/templates/runbook.md
-
-# Integration note — vendor/auth/quirks/failure modes
-driftless context add stripe-integration \
-  --kind integration-note \
-  --content @.driftless/assets/templates/integration-note.md
 ```
 
-After creating, edit the topic in Cloud (dashboard) or via `context update` to replace placeholders with real content.
+The five kinds — `reference` (default), `decision`, `roadmap`, `runbook`, `insight` — are labels for filtering/icons, not different shapes. After creating, fill in the real content via `context update` or in the dashboard.
 
 ### Cross-repo
 
@@ -251,7 +245,7 @@ Driftless is a notetaker, not an indexer. Onboarding is three commands: authenti
 3. **Create your first topic**:
    ```bash
    driftless context add onboarding-context \
-     --kind domain-map \
+     --kind reference \
      --what "Shared context map for this repo or workflow." \
      --how "Captures what humans and agents need to know before working here."
    ```
@@ -312,8 +306,8 @@ driftless context get billing                        # → existing topic, read 
 driftless context get --files "src/billing/refunds/refund.service.ts,src/billing/refunds/refund.controller.ts"
 # implement…
 driftless context add refund-flow \
-  --kind code-context \
-  --content @.driftless/assets/templates/code-context.md \
+  --kind reference \
+  --content @.driftless/assets/templates/reference.md \
   --pattern "src/billing/refunds/**"
 ```
 
@@ -338,7 +332,7 @@ driftless context update billing \
 driftless login                                       # if not already
 driftless install-skill                               # writes CLAUDE.md, AGENTS.md, .driftless/
 driftless context add onboarding-context \
-  --kind domain-map \
+  --kind reference \
   --what "Shared context map for this repo." \
   --how "Captures what humans and agents need to know before working here."
 ```

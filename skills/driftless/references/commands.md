@@ -53,7 +53,7 @@ Query and manage context topics — the team's shared repo knowledge.
 driftless context list
 driftless context list --status draft
 driftless context list --stale      # topics whose anchored code changed
-driftless context list --kind code-context
+driftless context list --kind reference
 ```
 
 #### Get specific context
@@ -99,7 +99,7 @@ driftless context add "<slug>" \
   --content "# Module Name\n\n## What\nWhat this module does\n\n## How\nHow it is implemented" \
   --pattern "src/auth/**" \
   --pattern "src/users/**" \
-  --kind code-context \
+  --kind reference \
   --tags auth,security \
   --rel depends_on:token-refresh
 ```
@@ -198,7 +198,7 @@ Registers the repo you are currently in into the topic's `where_repos`. Touches 
 #### Sync a file or note to a topic
 
 ```bash
-# Anchor a doc file — sets file_content, origin=doc, status=draft, kind=docs-note
+# Anchor a doc file — sets file_content, origin=doc, status=draft, kind=reference
 driftless context sync <slug> --doc path/to/file.md
 
 # Add a quick note — maps to the decisions field

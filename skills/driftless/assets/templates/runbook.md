@@ -52,4 +52,4 @@ ownership: "[On-call team or @handle]"
 
 ## Related
 
-- [[other-topic-slug]] — [why related, e.g. the code-context topic for the affected module]
+- [[other-topic-slug]] — [why related, e.g. the reference topic for the affected module]

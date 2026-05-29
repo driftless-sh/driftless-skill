@@ -2,63 +2,54 @@
 
 A Driftless topic is a markdown note with structured fields and optional code anchors. This reference covers every field, every kind, and the semantics of how updates merge.
 
-## Topic kinds — when to use each
+## Topic kinds — a label, not a schema
 
-The `--kind` flag classifies a topic. The dashboard filters by kind; agents pick templates by kind. There are nine valid kinds:
+`kind` is a **label** — it sets the icon and the dashboard filter. It does **not**
+change the shape of a topic. Every topic is content-first: the markdown `--content`
+body IS the topic, for every kind. Don't pick a kind to decide "structured vs
+prose" — write the content, then tag it with the kind that fits.
 
-| Kind | Use for | Agent writes it? |
-|---|---|---|
-| `code-context` | A module, area, or concept in the code — what/how/where + gotchas/decisions | **Yes** (most common) |
-| `decision` | An architecture decision (ADR-style) — context, options considered, decision, consequences | **Yes** |
-| `runbook` | An operational scenario — trigger, symptoms, diagnosis, resolution, rollback | **Yes** |
-| `integration-note` | A 3rd-party service integration — vendor, auth, quirks, failure modes | **Yes** |
-| `domain-map` | High-level shape of a system or repo (e.g. "onboarding-context", "platform-overview") | Sometimes (often team-curated) |
-| `roadmap` | Forward plan / phased rollout | Rarely — team owns roadmaps |
-| `customer-insight` | Product/customer learning that informs engineering | Rarely — PM/team owns |
-| `docs-note` | Pointer to or sync of an existing markdown doc | Used by `context sync --doc` |
-| `operational-note` | One-off ops detail that doesn't warrant a full runbook | Sometimes |
+There are five valid kinds:
 
-For the four "agent writes it" kinds, ship templates at `.driftless/assets/templates/<kind>.md`.
+| Kind | Use for |
+|---|---|
+| `reference` | Anything about the code or a system — a module, area, concept, integration, or how something is mapped out. The default and most common. |
+| `decision` | An architecture/product decision (ADR-style) — context, options, the call, consequences. |
+| `roadmap` | Forward plan, thesis, phased rollout, product direction. |
+| `runbook` | An operational scenario — trigger, symptoms, diagnosis, resolution, rollback. |
+| `insight` | Product/customer learning that informs engineering. |
 
-## Shape by kind
+`reference` is the catch-all for engineering knowledge — when in doubt, use it.
+Templates ship at `.driftless/assets/templates/<kind>.md` for `reference`,
+`decision`, and `runbook`; the others are free-form content.
 
-All topics share the same storage fields, but they should not all read like
-`code-context`. Pick the kind based on intent, then choose the shape.
+## Shape — content-first, for every kind
 
-| Kind | Primary presentation | Agent guidance |
-|---|---|---|
-| `code-context` | Structured fields first | Use `--what`, `--how`, `--gotcha`, `--decision`, `--invariant`, `--check`, and anchors. Markdown content is optional source material. |
-| `integration-note` | Structured fields first | Capture service contract, auth, retry/idempotency, quirks, and failure modes. |
-| `domain-map` | Structured fields first | Capture boundaries, related areas, ownership, and anchors. Avoid catch-all repo maps unless they help first onboarding. |
-| `decision` | Markdown content first | Put the ADR narrative in `--content`; keep `--what` to one sentence; use `--decision` for the durable commitment. |
-| `roadmap` | Markdown content first | Put thesis, direction, phases, and next moves in `--content`; use checks for review gates. |
-| `runbook` | Markdown content first | Put trigger, diagnosis, procedure, rollback, and checks in `--content`; use gotchas for traps. |
-| `docs-note` | Markdown content first | Use for existing docs or source-of-truth notes; link related topics instead of duplicating implementation detail. |
-| `operational-note` | Markdown content first | Use for ops knowledge that is not yet a full runbook; add checks when repeatable. |
-| `customer-insight` | Markdown content first | Capture customer behavior and product implication; relate to implementation topics when needed. |
+Write the topic as markdown `--content`: a clear, readable explanation, like a
+good doc. The structured fields are **optional highlights** layered on top:
 
-Rule: `--what` is always the short summary. `--content` carries the full
-narrative for document-first topics. Do not invent empty gotchas or decisions
-just because the fields exist.
+- `--what` — one-sentence summary (shown first in lists and `context get`).
+- `--gotcha` / `--decision` / `--invariant` / `--check` — add one only when you
+  want that specific thing surfaced to the machine (the PR bot, a future agent's
+  brief) *on top of* the content. Never invent an empty gotcha or decision just
+  because the flag exists.
+- `--pattern` — anchors are a separate axis (file matching); always worth setting.
 
 Agent prompt guidance:
 
 ```text
-Choose topic kind based on intent.
+Write every topic as markdown --content. kind is just a label/filter.
 
-Use code-context for implementation areas.
-Use decision for important product or architecture choices.
-Use roadmap for product direction, principles, and future UX shape.
-Use runbook for repeatable operational procedures.
-Use docs-note for documentation source-of-truth or publishing rules.
-Use integration-note for external systems and contracts.
+Pick the kind that fits the intent:
+  reference — code, systems, integrations, domain maps (default)
+  decision  — architecture/product choices
+  roadmap   — direction, principles, phased plans
+  runbook   — repeatable operational procedures
+  insight   — customer/product learning
 
-For roadmap, decision, runbook, docs-note, operational-note, and
-customer-insight topics, put the canonical narrative in --content markdown.
 Use --what as a one-sentence summary.
-Use --how only if there is an operational mechanism.
-Use --decision for durable commitments.
-Use --gotcha only for traps that would cause future mistakes.
+Add --gotcha / --decision / --invariant / --check only when you want that
+specific thing surfaced on top of the content — never to fill a form.
 ```
 
 ## Fields
@@ -263,8 +254,8 @@ driftless context add roadmap-q3 \
 
 # From a file
 driftless context add billing-flow \
-  --content @.driftless/assets/templates/code-context.md \
-  --kind code-context
+  --content @.driftless/assets/templates/reference.md \
+  --kind reference
 ```
 
 **YAML frontmatter in content is parsed automatically** — top-level keys map onto topic fields:

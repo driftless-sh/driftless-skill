@@ -88,7 +88,7 @@ If no topic covers the area:
 
 ```bash
 driftless context add payment-module \
-  --kind code-context \
+  --kind reference \
   --what "Handles payment processing" \
   --how "PaymentsService delegates to StripeAdapter; webhooks live in webhooks/" \
   --pattern "src/payments/**" \
