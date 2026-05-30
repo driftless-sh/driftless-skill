@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.3.0
+  version: 3.4.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -83,9 +83,9 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 ### Auto-pull (experimental, Claude Code) — UC1 without remembering
 
-`driftless install-skill` installs a Claude Code **PreToolUse hook** that does UC1 for you: before every `Edit`/`Write`, it injects the team's **authoritative System context** for that file automatically. It is **inert until a workspace admin turns it on** at the dashboard → Settings → Automations.
+`driftless install-skill` installs a Claude Code **PreToolUse hook** that does UC1 for you: before every `Edit`/`Write`, it injects the team's **reviewed context** for that file automatically. It is **inert until a workspace admin turns it on** at the dashboard → Settings → Automations.
 
-- Only **authoritative** topics auto-inject (a draft is a hint, not truth — it never auto-injects). This is the payoff of governance: approving a topic is what makes it reach the agent.
+- Only **reviewed** topics auto-inject (a draft is a hint, not truth — it never auto-injects). This is the payoff of governance: approving a topic is what makes it reach the agent.
 - Deduped per session (the same area injects once, not on every edit), size-capped, and a silent no-op when nothing matches.
 - It complements — never replaces — UC1. If you need context for an area you're reasoning about (not editing), still pull it explicitly with `context get`.
 - Controlled by the workspace toggle (`settings.auto_pull_context`); `driftless hooks disable` removes the hook from a machine entirely.
@@ -163,7 +163,7 @@ driftless context add stripe-webhook-replay \
   --content @.driftless/assets/templates/runbook.md
 ```
 
-The five kinds — `reference` (default), `decision`, `roadmap`, `runbook`, `insight` — are labels for filtering/icons, not different shapes. After creating, fill in the real content via `context update` or in the dashboard.
+`kind` is optional and being folded into tags — don't agonize over it; leave it at the default `reference` and use `--tags` if you want to label a topic (e.g. `--tags decision`). The shape of a topic does not change with kind; the content is the topic.
 
 ### Cross-repo
 
@@ -258,14 +258,12 @@ driftless context graph <slug>         # local relation graph around this topic
 
 Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`, `documents`, `risk_for`.
 
-### Governance — a topic is authoritative only if approved
+### Governance — a topic is trusted only once a human reviews it
 
-Topics carry a lifecycle: **`draft → proposed → reviewed → archived`**. `reviewed` is the **authoritative** state — the read response carries `governance.authoritative: true`. **Treat `reviewed` as truth; treat `draft`/`proposed` as a hint, not yet blessed.** The model is *agents propose, humans approve*:
+The one signal that matters: **is this reviewed?** A topic is `draft` (a hint, not yet vouched) until a human approves it, which makes it **`reviewed`** — the team's vouched truth (the read response carries `governance.authoritative: true`). **Treat `reviewed` as truth; treat `draft` as a hint.** The model is *agents propose, humans approve*:
 
 ```bash
-driftless context propose <slug>     # submit a draft for review
-driftless context approve <slug>     # make it authoritative (needs a human identity)
-driftless context reject <slug>      # send a proposed topic back to draft
+driftless context approve <slug>     # mark it reviewed (needs a human identity)
 driftless context archive <slug>     # retire a topic
 ```
 
