@@ -175,6 +175,25 @@ driftless context link <slug>
 
 `context link` registers the repo you are currently in into the topic's `where_repos` and **changes nothing else**. After linking, `context get <slug>` shows `used in (N repos): …` and groups files by repo.
 
+### CRITICAL: Naming discipline
+
+A topic has three text fields that people constantly mix up — get them right and the dashboard reads like a system map instead of slug soup:
+
+- **`slug`** (the topic name you pass to `add`) — the stable kebab-case **id**. Specific, lowercase. e.g. `mcp-architecture`.
+- **`--title`** — the **human display name**: a short noun, like a label on an architecture diagram. **One or two words, not a sentence.** e.g. `MCP`, `Billing`, `Auth`. This is what a human scans in a list.
+- **`--what`** (+ `--content`) — the **explanation**. One tight sentence in `--what`; the full doc in `--content`. The explanation goes HERE, never in the title.
+
+```bash
+# GOOD — readable map
+driftless context add mcp-architecture --title "MCP" \
+  --what "Remote-first MCP architecture exposing topics to ChatGPT and Claude." --content @doc.md
+
+# BAD — the title is a sentence / the slug, the what is empty
+driftless context add "how the mcp works and connects to chatgpt"
+```
+
+If you omit `--title`, it defaults to the slug — which reads badly. **Always set a short `--title`.**
+
 ### CRITICAL: Anchoring discipline
 
 Patterns claim a slice of the codebase. Size matters:
