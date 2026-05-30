@@ -2,7 +2,7 @@
 
 Structured catalog of common errors. Format: **Symptom** → **Cause** → **Solution**.
 
-For topic field/kind questions, see `topic-anatomy.md`.
+For topic field questions, see `topic-anatomy.md`.
 
 ---
 
@@ -53,7 +53,6 @@ If the slug is wrong, re-authenticate with a key from the correct workspace.
 **Solution:** Create the first topic:
 ```bash
 driftless context add onboarding-context \
-  --kind reference \
   --what "Shared context map for this repo." \
   --how "Captures what humans and agents need to know."
 ```
@@ -80,7 +79,6 @@ The `stale` flag clears automatically when you next `context update` the topic.
 **Solution:**
 ```bash
 driftless context list                    # see everything
-driftless context list --kind reference
 driftless context list --suggested        # also show drafts
 ```
 
@@ -155,7 +153,7 @@ If you see drift unexpectedly, the branch IS in the tracked set. Use `driftless 
   ```
 - If the path is a new concept, create a topic:
   ```bash
-  driftless context add <slug> --kind reference --pattern "<glob>"
+  driftless context add <slug> --pattern "<glob>"
   ```
 
 The next PR touching the same area will show those files as covered.

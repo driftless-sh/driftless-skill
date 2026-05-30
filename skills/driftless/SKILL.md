@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.4.0
+  version: 3.5.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -39,7 +39,7 @@ Before anything else, route on the situation:
 
 The everyday loop is two moves: **persist what you learn after a session** (UC2), and **pull it back before you touch that area again** (UC1). You do not start with a command — early on there is little to pull, so you mostly persist; retrieval starts paying off once you have a handful of topics.
 
-`driftless sync` is an **optional** team-wide digest — stale topics, team PR activity, suggested topics — for when you want to scan everything that moved at once. You almost never need it, and you do not run it to start: drift already reaches you as a freshness badge when you `context get` the area you are working on (UC1).
+`driftless sync` is an **optional** team-wide digest — drifted topics, team PR activity, suggested topics — for when you want to scan everything that moved at once. You almost never need it, and you do not run it to start: drift already reaches you as a freshness badge when you `context get` the area you are working on (UC1).
 
 Drift is **scoped to tracked branches**: a topic only goes stale when its covered code changes on the repo's default branch (auto-detected — main/master/whatever) or an extra branch the team opted into. A push to a throwaway feature branch is recorded but never creates false drift. `driftless branches` shows/sets the tracked set; `sync` prints it as the `tracking:` line.
 
@@ -98,7 +98,7 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 **Rule:** If it would have saved you time to know this upfront, save it now. Do NOT keep discoveries in conversation memory only. Cloud is the source of truth.
 
-**Write the topic as markdown `--content` — for every kind.** The content body IS the topic: a clear, readable explanation, like a good doc. `kind` is just a label (the filter/icon it gets), not a different shape — don't pick a kind to decide "structured vs prose"; everything is content-first.
+**Write the topic as markdown `--content`.** The content body IS the topic: a clear, readable explanation, like a good doc. Use `--tags` (free-form) to label or group topics.
 
 Keep `--what` to one tight sentence (the summary shown in lists) and put the real explanation in `--content`.
 
@@ -133,7 +133,7 @@ Trust the validator. If it says 0 matches, the topic would have been instantly s
 
 ### If no topic covers this area
 
-Write the `--content` body yourself, then tag it with the kind that fits. There are three starter templates in `.driftless/assets/templates/` — use one as scaffolding if it helps, but the content is what matters, not the form.
+Write the `--content` body yourself. There are three starter templates in `.driftless/assets/templates/` (`reference`, `decision`, `runbook`) — use one as scaffolding if it helps, but the content is what matters, not the form. Use `--tags` to label or group the topic.
 
 **Which project does it go in?** Topics land in the public **"General"** project by default. If the human tells you you're working in a specific project, set it once at the start of the session and every create lands there:
 
@@ -145,25 +145,22 @@ driftless project list                # see projects; ● marks the active one
 ```
 
 ```bash
-# Engineering knowledge — code, systems, integrations, domain maps (the default)
+# Engineering knowledge — code, systems, integrations, domain maps
 driftless context add billing-flow \
-  --kind reference \
   --content @.driftless/assets/templates/reference.md \
   --pattern "src/billing/**" --pattern "src/checkout/**" \
   --tags billing
 
 # Architecture/product decision (ADR) — context/options/decision/consequences
 driftless context add async-webhook-handler \
-  --kind decision \
   --content @.driftless/assets/templates/decision.md
 
 # Runbook — trigger/symptoms/diagnosis/resolution/rollback
 driftless context add stripe-webhook-replay \
-  --kind runbook \
   --content @.driftless/assets/templates/runbook.md
 ```
 
-`kind` is optional and being folded into tags — don't agonize over it; leave it at the default `reference` and use `--tags` if you want to label a topic (e.g. `--tags decision`). The shape of a topic does not change with kind; the content is the topic.
+The `--content` body is the topic. Use `--tags` to label or group a topic (e.g. `--tags decision`).
 
 ### Cross-repo
 
@@ -228,7 +225,7 @@ driftless context update billing-flow \
   --remove-pattern "src/billing/legacy/**"
 ```
 
-See `references/topic-anatomy.md` for the full reference on kinds, fields, append-vs-replace semantics, and status lifecycle.
+See `references/topic-anatomy.md` for the full reference on fields, append-vs-replace semantics, and status lifecycle.
 
 ### Linking topics with `[[slug]]`
 
@@ -302,7 +299,6 @@ Driftless is a notetaker, not an indexer. Onboarding is three commands: authenti
 3. **Create your first topic**:
    ```bash
    driftless context add onboarding-context \
-     --kind reference \
      --what "Shared context map for this repo or workflow." \
      --how "Captures what humans and agents need to know before working here."
    ```
@@ -344,7 +340,7 @@ The value compounds with the count. With one or two topics there is little to pu
 **Trigger:** About to commit, push, or wrap up the task.
 
 ```bash
-driftless context get --diff            # topics matching your local uncommitted changes — stale ones show a ⚠ badge
+driftless context get --diff            # topics matching your local uncommitted changes — drifted ones show a ⚠ badge
 ```
 
 If `--diff` surfaces a stale topic that your change touches, update it (UC2) BEFORE pushing. The point of pre-commit is to leave the context layer healthier than you found it.
@@ -363,7 +359,6 @@ driftless context get billing                        # → existing topic, read 
 driftless context get --files "src/billing/refunds/refund.service.ts,src/billing/refunds/refund.controller.ts"
 # implement…
 driftless context add refund-flow \
-  --kind reference \
   --content @.driftless/assets/templates/reference.md \
   --pattern "src/billing/refunds/**"
 ```
@@ -389,7 +384,6 @@ driftless context update billing \
 driftless login                                       # if not already
 driftless install-skill                               # writes CLAUDE.md, AGENTS.md, .driftless/
 driftless context add onboarding-context \
-  --kind reference \
   --what "Shared context map for this repo." \
   --how "Captures what humans and agents need to know before working here."
 ```
@@ -399,7 +393,7 @@ driftless context add onboarding-context \
 
 **Actions:**
 ```bash
-driftless context get --diff                          # topics matching local diff — stale ones show a ⚠ badge
+driftless context get --diff                          # topics matching local diff — drifted ones show a ⚠ badge
 # If any topic is stale and your change touched it, update before pushing:
 driftless context update <slug> --gotcha "…" --decision "…"
 git push

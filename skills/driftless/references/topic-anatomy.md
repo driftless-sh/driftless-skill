@@ -1,53 +1,32 @@
 # Topic Anatomy
 
-A Driftless topic is a markdown note with structured fields and optional code anchors. This reference covers every field, every kind, and the semantics of how updates merge.
+A Driftless topic is a markdown note with structured fields and optional code anchors. This reference covers every field and the semantics of how updates merge.
 
-## Topic kinds — a label, not a schema
-
-`kind` is a **label** — it sets the icon and the dashboard filter. It does **not**
-change the shape of a topic. Every topic is content-first: the markdown `--content`
-body IS the topic, for every kind. Don't pick a kind to decide "structured vs
-prose" — write the content, then tag it with the kind that fits.
-
-There are five valid kinds:
-
-| Kind | Use for |
-|---|---|
-| `reference` | Anything about the code or a system — a module, area, concept, integration, or how something is mapped out. The default and most common. |
-| `decision` | An architecture/product decision (ADR-style) — context, options, the call, consequences. |
-| `roadmap` | Forward plan, thesis, phased rollout, product direction. |
-| `runbook` | An operational scenario — trigger, symptoms, diagnosis, resolution, rollback. |
-| `insight` | Product/customer learning that informs engineering. |
-
-`reference` is the catch-all for engineering knowledge — when in doubt, use it.
-Templates ship at `.driftless/assets/templates/<kind>.md` for `reference`,
-`decision`, and `runbook`; the others are free-form content.
-
-## Shape — content-first, for every kind
+## Shape — content-first
 
 Write the topic as markdown `--content`: a clear, readable explanation, like a
-good doc. The structured fields are **optional highlights** layered on top:
+good doc. The content body IS the topic. The structured fields are **optional
+highlights** layered on top:
 
 - `--what` — one-sentence summary (shown first in lists and `context get`).
 - `--gotcha` / `--decision` / `--invariant` / `--check` — add one only when you
   want that specific thing surfaced to the machine (the PR bot, a future agent's
   brief) *on top of* the content. Never invent an empty gotcha or decision just
   because the flag exists.
+- `--tags` — free-form labels to group and filter topics.
 - `--pattern` — anchors are a separate axis (file matching); always worth setting.
+
+Three starter templates ship at `.driftless/assets/templates/` — `reference.md`,
+`decision.md`, and `runbook.md` — as optional content scaffolding. Use one if it
+helps; the content is what matters, not the form.
 
 Agent prompt guidance:
 
 ```text
-Write every topic as markdown --content. kind is just a label/filter.
-
-Pick the kind that fits the intent:
-  reference — code, systems, integrations, domain maps (default)
-  decision  — architecture/product choices
-  roadmap   — direction, principles, phased plans
-  runbook   — repeatable operational procedures
-  insight   — customer/product learning
+Write every topic as markdown --content. The content body is the topic.
 
 Use --what as a one-sentence summary.
+Use --tags to label and group topics.
 Add --gotcha / --decision / --invariant / --check only when you want that
 specific thing surfaced on top of the content — never to fill a form.
 ```
@@ -73,7 +52,6 @@ specific thing surfaced on top of the content — never to fill a form.
 ### System-managed (don't write directly)
 
 - **`status`** — `draft` | `reviewed` | `superseded` | `archived`.
-- **`origin`** — `manual` | `suggested` | `doc` | `synced`.
 - **`version`** — bumps on every PATCH.
 - **`stale`** / **`stale_reason`** — set automatically when covered code changes on a tracked branch.
 - **`where_repos[]`** — every repo where this topic applies. Auto-populated by `context update` (current repo) and explicit `context link`.
@@ -224,7 +202,7 @@ A topic is **authoritative only if approved**. The lifecycle is a governed state
 |---|---|
 | `draft` | Not yet team-blessed. `--suggest`-generated topics start here. **Agents must not treat as authoritative** — it's a hint. |
 | `proposed` | Submitted for review, awaiting a human's approval. |
-| `reviewed` | **Authoritative.** A human approved it; the read response carries `governance.authoritative: true` + `approved_by` / `approved_at`. The agent treats this as truth. |
+| `reviewed` | **Reviewed.** A human approved it; the read response carries `governance.authoritative: true` + `approved_by` / `approved_at`. The agent treats this as truth. |
 | `archived` | Retired. Hidden from default `context list`. |
 | `orphaned` | Code-driven (its repo was deleted) — orthogonal to the governance states. |
 
@@ -239,29 +217,9 @@ driftless context archive <slug>     # → archived
 
 To change an already-`reviewed` topic, **don't overwrite it — open a topic-PR** (`driftless context pr <slug> --open ...`); a human merges it (applies the change + re-approves). See `references/commands.md`.
 
-## Lifecycle class — durable vs ephemeral
-
-Orthogonal to `kind` and to `status`: **`lifecycle_class`** = `durable` (default) or `ephemeral`.
-
-- **`durable`** — canonical knowledge: how a system works, decisions, runbooks, real feature docs. Lives forever; this is the graph the team governs.
-- **`ephemeral`** — work: session notes, pending items, "shipped in PR #N", tasks. Meant to be archived/expired; should not pollute the durable graph.
-
-Keep process/worklog noise out of durable topics — it goes in an ephemeral topic or in git, never pinned to a durable one.
-
 ## Containment — project & visibility
 
 Every topic belongs to exactly one **project** (`project_id`) — the unit of privacy. A project is `public` (visible to the whole workspace) or `private` (only its members). New topics default to the workspace's public **"General"** project unless another is given. The agent only ever sees topics in projects it can access; a private topic out of reach reads as `404`.
-
-## Origin
-
-| Origin | Meaning |
-|---|---|
-| `manual` | Created by `driftless context add` |
-| `agent` | Created by an agent |
-| `doc` | Created by `driftless context sync --doc` (file-anchored) |
-| `synced` | Result of an external sync flow |
-
-Origin is system-set; you don't write it directly. The dashboard filters by origin when reviewing.
 
 ## Topic content body
 
@@ -270,13 +228,11 @@ The `--content` flag accepts either inline markdown or a file path (prefixed wit
 ```bash
 # Inline markdown
 driftless context add roadmap-q3 \
-  --content "# Q3 Roadmap\n\n## Goals\n- Auth redesign\n- Stripe migration" \
-  --kind roadmap
+  --content "# Q3 Roadmap\n\n## Goals\n- Auth redesign\n- Stripe migration"
 
 # From a file
 driftless context add billing-flow \
-  --content @.driftless/assets/templates/reference.md \
-  --kind reference
+  --content @.driftless/assets/templates/reference.md
 ```
 
 **YAML frontmatter in content is parsed automatically** — top-level keys map onto topic fields:

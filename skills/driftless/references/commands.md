@@ -53,7 +53,6 @@ Query and manage context topics — the team's shared repo knowledge.
 driftless context list
 driftless context list --status draft
 driftless context list --stale      # topics whose anchored code changed
-driftless context list --kind reference
 ```
 
 #### Get specific context
@@ -99,7 +98,6 @@ driftless context add "<slug>" \
   --content "# Module Name\n\n## What\nWhat this module does\n\n## How\nHow it is implemented" \
   --pattern "src/auth/**" \
   --pattern "src/users/**" \
-  --kind reference \
   --tags auth,security \
   --rel depends_on:token-refresh
 ```
@@ -136,7 +134,7 @@ driftless context update <slug> \
 - `--add-pattern` / `--remove-pattern` are idempotent: running the same one twice is a no-op. Both can fire in the same PATCH — remove applies first, then add.
 - Every PATCH bumps `version` and writes a history event, so **batch related changes into ONE invocation** rather than splitting into N small ones.
 
-Other `context update` flags: `--content` (full markdown body), `--kind`, `--tags`, `--status <reviewed|draft>`, `--where` (single file path), `--gotchas` (replace all gotchas), `--decisions` (replace all decisions), `--ownership`, `--pattern` (replace all patterns), `--enforce "rule"`, `--dry-run`, `--json`, `--check` (required check, repeatable).
+Other `context update` flags: `--content` (full markdown body), `--tags`, `--status <reviewed|draft>`, `--where` (single file path), `--gotchas` (replace all gotchas), `--decisions` (replace all decisions), `--ownership`, `--pattern` (replace all patterns), `--enforce "rule"`, `--dry-run`, `--json`, `--check` (required check, repeatable).
 
 Get `--help` on any subcommand for the full flag list:
 
@@ -198,7 +196,7 @@ Registers the repo you are currently in into the topic's `where_repos`. Touches 
 #### Sync a file or note to a topic
 
 ```bash
-# Anchor a doc file — sets file_content, origin=doc, status=draft, kind=reference
+# Anchor a doc file — sets file_content, status=draft
 driftless context sync <slug> --doc path/to/file.md
 
 # Add a quick note — maps to the decisions field
