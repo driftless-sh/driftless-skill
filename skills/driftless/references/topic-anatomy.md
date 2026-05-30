@@ -216,20 +216,41 @@ Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`
 
 The dashboard Topic Graph (`/graph`) renders the full workspace knowledge graph with color-coded nodes and relation edges.
 
-## Status lifecycle
+## Status lifecycle — governance
+
+A topic is **authoritative only if approved**. The lifecycle is a governed state machine: **`draft → proposed → reviewed → archived`**.
 
 | Status | Meaning |
 |---|---|
-| `draft` | Not yet team-blessed. `--suggest`-generated topics start here. Agents should not treat as authoritative. |
-| `reviewed` | Team has confirmed this topic reflects reality. Authoritative. |
-| `superseded` | Replaced by another topic (use `--rel supersedes:new-slug`). Kept for history. |
-| `archived` | No longer applicable. Hidden from default `context list`. |
+| `draft` | Not yet team-blessed. `--suggest`-generated topics start here. **Agents must not treat as authoritative** — it's a hint. |
+| `proposed` | Submitted for review, awaiting a human's approval. |
+| `reviewed` | **Authoritative.** A human approved it; the read response carries `governance.authoritative: true` + `approved_by` / `approved_at`. The agent treats this as truth. |
+| `archived` | Retired. Hidden from default `context list`. |
+| `orphaned` | Code-driven (its repo was deleted) — orthogonal to the governance states. |
 
-Promote a draft to reviewed:
+The model is **agents propose, humans approve** — `approve`/`reject`/`merge` require a human identity (an ownerless agent key can propose but never bless):
 
 ```bash
-driftless context update <slug> --status reviewed
+driftless context propose <slug>     # draft → proposed
+driftless context approve <slug>     # → reviewed (authoritative), seals approved_by
+driftless context reject <slug>      # proposed → draft
+driftless context archive <slug>     # → archived
 ```
+
+To change an already-`reviewed` topic, **don't overwrite it — open a topic-PR** (`driftless context pr <slug> --open ...`); a human merges it (applies the change + re-approves). See `references/commands.md`.
+
+## Lifecycle class — durable vs ephemeral
+
+Orthogonal to `kind` and to `status`: **`lifecycle_class`** = `durable` (default) or `ephemeral`.
+
+- **`durable`** — canonical knowledge: how a system works, decisions, runbooks, real feature docs. Lives forever; this is the graph the team governs.
+- **`ephemeral`** — work: session notes, pending items, "shipped in PR #N", tasks. Meant to be archived/expired; should not pollute the durable graph.
+
+Keep process/worklog noise out of durable topics — it goes in an ephemeral topic or in git, never pinned to a durable one.
+
+## Containment — project & visibility
+
+Every topic belongs to exactly one **project** (`project_id`) — the unit of privacy. A project is `public` (visible to the whole workspace) or `private` (only its members). New topics default to the workspace's public **"General"** project unless another is given. The agent only ever sees topics in projects it can access; a private topic out of reach reads as `404`.
 
 ## Origin
 

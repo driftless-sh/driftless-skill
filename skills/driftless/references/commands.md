@@ -226,6 +226,35 @@ driftless context delete <slug>
 driftless context delete <slug> --dry-run   # preview without deleting
 ```
 
+#### Governance — a topic is authoritative only if approved
+
+Lifecycle: `draft → proposed → reviewed → archived`. `reviewed` is the **authoritative** state — the read response carries `governance.authoritative: true`. Treat `reviewed` as truth, `draft`/`proposed` as a hint. The model is *agents propose, humans approve*.
+
+```bash
+driftless context propose <slug>     # submit a draft for review
+driftless context approve <slug>     # make it authoritative (needs a human identity)
+driftless context reject <slug>      # send a proposed topic back to draft
+driftless context archive <slug>     # retire a topic
+```
+
+**topic-PR** — propose a content change to an approved topic instead of overwriting it; a human reviews and merges:
+
+```bash
+driftless context pr <slug>                                        # list open proposals
+driftless context pr <slug> --open --summary "why" --content @new.md   # open a proposal
+driftless context pr <slug> --merge <id>                           # apply + approve (human)
+driftless context pr <slug> --reject <id>                          # close without applying (human)
+```
+
+`approve` / `merge` / `reject` require a human identity — an ownerless agent key can propose but never bless. If a `reviewed` topic needs to change, open a `pr`; don't clobber it.
+
+#### Share a topic publicly
+
+```bash
+driftless context share <slug>            # public read-only link (driftless.icu/s/<token>)
+driftless context share <slug> --revoke   # turn the link off
+```
+
 ---
 
 ### `driftless sync`

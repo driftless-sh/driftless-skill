@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.2.0
+  version: 3.3.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -220,6 +220,28 @@ driftless context graph <slug>         # local relation graph around this topic
 ```
 
 Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`, `documents`, `risk_for`.
+
+### Governance — a topic is authoritative only if approved
+
+Topics carry a lifecycle: **`draft → proposed → reviewed → archived`**. `reviewed` is the **authoritative** state — the read response carries `governance.authoritative: true`. **Treat `reviewed` as truth; treat `draft`/`proposed` as a hint, not yet blessed.** The model is *agents propose, humans approve*:
+
+```bash
+driftless context propose <slug>     # submit a draft for review
+driftless context approve <slug>     # make it authoritative (needs a human identity)
+driftless context reject <slug>      # send a proposed topic back to draft
+driftless context archive <slug>     # retire a topic
+```
+
+**Don't overwrite an approved topic blindly.** To change canonical truth, open a **topic-PR** — a proposed content change a human reviews and merges:
+
+```bash
+driftless context pr <slug>                                   # list open proposals
+driftless context pr <slug> --open --summary "why" --content @new.md   # propose a change
+driftless context pr <slug> --merge <id>                      # apply + approve (human)
+driftless context pr <slug> --reject <id>                     # close without applying
+```
+
+As an agent: when you discover something, persist it (UC2) — that lands as a draft. If a topic is already `reviewed` and your finding changes it, open a `pr` instead of clobbering it. `approve`/`merge` require a human identity (an ownerless agent key can propose but not bless).
 
 ---
 
