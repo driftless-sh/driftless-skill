@@ -34,7 +34,7 @@ Before anything else, route on the situation:
 | About to edit a specific file (you have topics) | `driftless context get --files "<path>"` — drifted topics show a ⚠ badge inline (UC1) |
 | Looking for context on an area | `driftless context search <kw>` / `context get <slug>` (UC1) |
 | Learned something worth keeping | UC2 — `driftless context update <slug>` (or `add` if no topic) |
-| About to commit or push | `driftless context get --diff` (UC3) |
+| About to commit or push | `driftless context get --diff` (UC3); add `--mark` to flag matched topics drifted |
 | Need to know if context itself is trustworthy | `driftless context doctor` |
 
 The everyday loop is two moves: **persist what you learn after a session** (UC2), and **pull it back before you touch that area again** (UC1). You do not start with a command — early on there is little to pull, so you mostly persist; retrieval starts paying off once you have a handful of topics.
@@ -340,10 +340,13 @@ The value compounds with the count. With one or two topics there is little to pu
 **Trigger:** About to commit, push, or wrap up the task.
 
 ```bash
-driftless context get --diff            # topics matching your local uncommitted changes — drifted ones show a ⚠ badge
+driftless context get --diff            # topics matching your local uncommitted changes — drifted ones show a ↻ badge
+driftless context get --diff --mark     # …and flag the matched topics as drifted on Cloud (local-git drift, no GitHub App)
 ```
 
 If `--diff` surfaces a stale topic that your change touches, update it (UC2) BEFORE pushing. The point of pre-commit is to leave the context layer healthier than you found it.
+
+`--mark` is the **second drift source**: it persists drift for the matched topics from your *local* git, so a team without the GitHub App still gets a re-review signal (they show up in the dashboard's Review Queue). It is **opt-in and explicit** — plain `--diff` only displays, so work-in-progress never flips team state unless you ask.
 
 ---
 
