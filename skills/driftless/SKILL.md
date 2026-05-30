@@ -135,6 +135,15 @@ Trust the validator. If it says 0 matches, the topic would have been instantly s
 
 Write the `--content` body yourself, then tag it with the kind that fits. There are three starter templates in `.driftless/assets/templates/` — use one as scaffolding if it helps, but the content is what matters, not the form.
 
+**Which project does it go in?** Topics land in the public **"General"** project by default. If the human tells you you're working in a specific project, set it once at the start of the session and every create lands there:
+
+```bash
+driftless project use Juegos          # active project for this session
+driftless context add level-design --pattern "src/levels/**"   # → Juegos
+driftless context add note --project General                   # one-off override
+driftless project list                # see projects; ● marks the active one
+```
+
 ```bash
 # Engineering knowledge — code, systems, integrations, domain maps (the default)
 driftless context add billing-flow \
