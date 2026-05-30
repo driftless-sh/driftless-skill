@@ -81,6 +81,15 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 5. **No topic matches the file you are about to edit?**
    Read the code first, then create a topic before assuming. Driftless will only ever know what the team writes down — the absence of a topic is a gap to close (UC2), not permission to skip the documentation step.
 
+### Auto-pull (experimental, Claude Code) — UC1 without remembering
+
+`driftless install-skill` installs a Claude Code **PreToolUse hook** that does UC1 for you: before every `Edit`/`Write`, it injects the team's **authoritative System context** for that file automatically. It is **inert until a workspace admin turns it on** at the dashboard → Settings → Automations.
+
+- Only **authoritative** topics auto-inject (a draft is a hint, not truth — it never auto-injects). This is the payoff of governance: approving a topic is what makes it reach the agent.
+- Deduped per session (the same area injects once, not on every edit), size-capped, and a silent no-op when nothing matches.
+- It complements — never replaces — UC1. If you need context for an area you're reasoning about (not editing), still pull it explicitly with `context get`.
+- Controlled by the workspace toggle (`settings.auto_pull_context`); `driftless hooks disable` removes the hook from a machine entirely.
+
 ---
 
 ## Use Case 2 — Persist what you learned
