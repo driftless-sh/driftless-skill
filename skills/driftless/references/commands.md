@@ -104,7 +104,7 @@ driftless context add "<slug>" \
 
 `--pattern` is **repeatable** — pass it multiple times for a multi-anchor topic. The CLI blocks creation if any pattern matches 0 files locally; emits a non-blocking `⚠ over-broad anchor` warning when the topic covers more than 100 files (healthy is 5–40 — see "Anchoring discipline" below).
 
-Other `context add` flags: `--what`, `--how`, `--where` (single file path), `--decisions`, `--gotchas`, `--ownership`, `--status <reviewed|draft>`, `--file` (content from file path), `--dry-run`.
+Other `context add` flags: `--what`, `--how`, `--where` (single file path), `--decisions`, `--gotchas`, `--ownership`, `--status proposed` (submit as a Proposal; omit → born a Note/draft — `reviewed` is not settable at create, only via `context approve`), `--file` (content from file path), `--dry-run`.
 
 For backward compat `--where path/to/file` still works as a single explicit anchor. Use `--pattern` for globs (the common case).
 

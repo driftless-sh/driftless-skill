@@ -269,6 +269,8 @@ Note (draft)  →  Proposal (proposed)  →  Institutional Context (reviewed)
 
 **Treat Institutional Context (`reviewed`) as truth; a Note is a hint.** The model is *agents propose, humans approve* — an ownerless agent key can propose but never bless.
 
+**Creation is always a Note (draft)** — for everyone, agent or human, CLI or MCP. Anyone may instead submit a **Proposal** (`--status proposed` on create, or `context propose` later) — proposing is a *request* for review, which is exactly what agents do. But `reviewed` is **never** set at create, by anyone: Institutional Context comes only from `context approve` (a human). No one self-blesses authoritative truth.
+
 ```bash
 driftless context propose <slug>     # Note → Proposal (submit for review)
 driftless context approve <slug>     # → Institutional Context (needs a human identity)
@@ -478,4 +480,4 @@ For the full catalog, see `references/troubleshooting.md`.
 Common flags available on most context commands:
 - `--dry-run` — preview changes without writing
 - `--json` — machine-readable output
-- `--status <reviewed|draft>` — set topic status on create or update
+- `--status proposed` — submit a new topic as a Proposal (omit → born a Note/draft). `reviewed` is not settable at create; it comes only from `context approve` (human).
