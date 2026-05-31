@@ -255,12 +255,24 @@ driftless context graph <slug>         # local relation graph around this topic
 
 Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`, `documents`, `risk_for`.
 
-### Governance — a topic is trusted only once a human reviews it
+### Governance — everything is one topic that evolves
 
-The one signal that matters: **is this reviewed?** A topic is `draft` (a hint, not yet vouched) until a human approves it, which makes it **`reviewed`** — the team's vouched truth (the read response carries `governance.authoritative: true`). **Treat `reviewed` as truth; treat `draft` as a hint.** The model is *agents propose, humans approve*:
+There is a single primitive — a **topic** — that matures along one trust axis. The names are stages of the *same object*:
+
+```text
+Note (draft)  →  Proposal (proposed)  →  Institutional Context (reviewed)
+```
+
+- **Note** — private scratch (only its creator sees it; excluded from search by default; untouched notes auto-archive ~14d, recoverable). Where you think before sharing.
+- **Proposal** — a Note promoted for human review. Pending a vouch; can be sent back with a reason.
+- **Institutional Context** — the **final evolution**: a human approved it, so it joins the team's living, code-anchored **knowledge graph** of the codebase. This is the durable truth you consume (`governance.authoritative: true`).
+
+**Treat Institutional Context (`reviewed`) as truth; a Note is a hint.** The model is *agents propose, humans approve* — an ownerless agent key can propose but never bless.
 
 ```bash
-driftless context approve <slug>     # mark it reviewed (needs a human identity)
+driftless context propose <slug>     # Note → Proposal (submit for review)
+driftless context approve <slug>     # → Institutional Context (needs a human identity)
+driftless context reject <slug> --reason "..."   # → Note, with feedback to the author
 driftless context archive <slug>     # retire a topic
 ```
 
