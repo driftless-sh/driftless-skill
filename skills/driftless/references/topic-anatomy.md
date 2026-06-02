@@ -217,9 +217,9 @@ driftless context archive <slug>     # → archived
 
 To change an already-`reviewed` topic, **don't overwrite it — open a topic-PR** (`driftless context pr <slug> --open ...`); a human merges it (applies the change + re-approves). See `references/commands.md`.
 
-## Containment — project & visibility
+## Visibility
 
-Every topic belongs to exactly one **project** (`project_id`) — the unit of privacy. A project is `public` (visible to the whole workspace) or `private` (only its members). New topics default to the workspace's public **"General"** project unless another is given. The agent only ever sees topics in projects it can access; a private topic out of reach reads as `404`.
+Every topic lives in the **workspace** and is visible to all its members. The one exception is a **private draft** (`status=draft` + `is_private`): visible only to its creator until they propose it or clear the private flag. Need true isolation between groups? use a separate workspace. (Approving a proposal into Institutional Context is a workspace **role** — owner/admin; members propose.)
 
 ## Topic content body
 

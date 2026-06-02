@@ -133,16 +133,7 @@ Trust the validator. If it says 0 matches, the topic would have been instantly s
 
 ### If no topic covers this area
 
-Write the `--content` body yourself. There are three starter templates in `.driftless/assets/templates/` (`reference`, `decision`, `runbook`) — use one as scaffolding if it helps, but the content is what matters, not the form. Use `--tags` to label or group the topic.
-
-**Which project does it go in?** Topics land in the public **"General"** project by default. If the human tells you you're working in a specific project, set it once at the start of the session and every create lands there:
-
-```bash
-driftless project use Juegos          # active project for this session
-driftless context add level-design --pattern "src/levels/**"   # → Juegos
-driftless context add note --project General                   # one-off override
-driftless project list                # see projects; ● marks the active one
-```
+Write the `--content` body yourself. There are three starter templates in `.driftless/assets/templates/` (`reference`, `decision`, `runbook`) — use one as scaffolding if it helps, but the content is what matters, not the form. Use `--tags` to label or group the topic. Every topic lives in the workspace and is visible to the whole team (need isolation? use a separate workspace).
 
 ```bash
 # Engineering knowledge — code, systems, integrations, domain maps
