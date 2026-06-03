@@ -100,7 +100,7 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 **Write the topic as markdown `--content`.** The content body IS the topic: a clear, readable explanation, like a good doc. Use `--tags` (free-form) to label or group topics.
 
-Keep `--what` to one tight sentence (the summary shown in lists) and put the real explanation in `--content`.
+Keep `--what` to one tight sentence (the summary shown in lists) and put the real explanation in `--content`. `--how` is a SHORT (1–3 sentence) note on the approach or mechanism — NOT a place to paste a document; the long-form doc goes in `--content`, where it renders as markdown (headings, tables, code). A doc dumped into `--how` renders as a wall of literal markdown, and `context doctor` flags it as `mis-shaped how`.
 
 The structured fields (`--gotcha`, `--decision`, `--invariant`, `--check`) are **optional highlights** — add one only when you want that specific thing surfaced to the machine (the PR bot, a future agent's brief) *on top of* the content. **Never invent an empty gotcha/decision just because the flag exists.** Anchors (`--pattern`) are a separate axis — they're the file-matching, and they're always worth setting.
 

@@ -9,6 +9,10 @@ good doc. The content body IS the topic. The structured fields are **optional
 highlights** layered on top:
 
 - `--what` — one-sentence summary (shown first in lists and `context get`).
+- `--how` — a SHORT (1–3 sentence) note on the approach/mechanism. NOT a place
+  for a document — the long-form goes in `--content` (where it renders as
+  markdown). A doc pasted into `--how` is flagged by `context doctor` as
+  `mis-shaped how`.
 - `--gotcha` / `--decision` / `--invariant` / `--check` — add one only when you
   want that specific thing surfaced to the machine (the PR bot, a future agent's
   brief) *on top of* the content. Never invent an empty gotcha or decision just
@@ -37,7 +41,7 @@ specific thing surfaced on top of the content — never to fill a form.
 
 - **`name`** (slug) — lowercase kebab-case. Set on `add`, immutable thereafter.
 - **`what`** — one-sentence summary. Surfaces first in `context get`.
-- **`how`** — implementation patterns. Avoid restating code; capture *intent* and *structure*.
+- **`how`** — implementation patterns. Avoid restating code; capture *intent* and *structure*. Keep it SHORT (1–3 sentences); long-form goes in `content`, not here.
 
 ### Optional but high-value
 
