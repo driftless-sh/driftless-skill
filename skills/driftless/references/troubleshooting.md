@@ -30,7 +30,7 @@ export DRIFTLESS_API_KEY=drift_xxx
 driftless doctor                          # verify
 ```
 
-Get a fresh key at driftless.icu → Settings → API Keys.
+Get a fresh key at app.driftless.icu → Settings → API Keys.
 
 ### `driftless doctor` reports "Workspace fail"
 
@@ -116,7 +116,7 @@ If the area genuinely has no topic, create one (UC2).
 **Cause (subtle):** GitHub App is not installed, so Cloud has no push events to compute drift from. `doctor` shows the GitHub App line as `INFO: Not installed`.
 
 **Solution:**
-- For team drift, install the GitHub App at driftless.icu → Settings → Integrations.
+- For team drift, install the GitHub App at app.driftless.icu → Settings → Integrations.
 - For *local* uncommitted changes, use `driftless context get --diff` instead — no GitHub App required.
 
 ### `sync` shows drift on a feature branch but I never tracked it
@@ -139,7 +139,7 @@ If you see drift unexpectedly, the branch IS in the tracked set. Use `driftless 
 
 **Solution:**
 - Confirm with `driftless doctor` — the GitHub App line will read `INFO: not installed` if missing.
-- Install the App at driftless.icu → Settings → Integrations.
+- Install the App at app.driftless.icu → Settings → Integrations.
 - Confirm the repo is in the workspace: `driftless context list --auto` (or open the dashboard).
 
 ### PR comment shows everything as "outside any topic"
@@ -301,5 +301,5 @@ driftless context delete <slug>
 
 If `driftless doctor` is all green but behavior is still wrong:
 - `driftless doctor --json` and read the structured output.
-- Check the dashboard (driftless.icu) — your view of topics may not match what Cloud has.
+- Check the dashboard (app.driftless.icu) — your view of topics may not match what Cloud has.
 - File an issue at github.com/driftless-sh/driftless-skill/issues with the doctor JSON.

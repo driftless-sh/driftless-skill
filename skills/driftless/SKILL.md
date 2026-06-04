@@ -163,6 +163,18 @@ driftless context link <slug>
 
 `context link` registers the repo you are currently in into the topic's `where_repos` and **changes nothing else**. After linking, `context get <slug>` shows `used in (N repos): …` and groups files by repo.
 
+### Cross-workspace
+
+A workspace is the top-level container; a topic lives in exactly one. You can belong to several workspaces and switch between them without re-authenticating (one `driftless login` registers them all under one scoped key):
+
+```bash
+driftless workspace list             # the workspaces you belong to
+driftless workspace switch <slug>    # operate on another one (no re-login)
+driftless context move <slug> --to <workspace-slug>   # re-home a topic
+```
+
+`context move` resets the topic to a draft in its new workspace (a vouch doesn't carry across workspaces) and needs owner/admin in the source. Unlike `context link` (same topic, many repos, one workspace), `move` changes which workspace owns the topic.
+
 ### CRITICAL: Naming discipline
 
 A topic has three text fields that people constantly mix up — get them right and the dashboard reads like a system map instead of slug soup:
@@ -435,7 +447,7 @@ For the full catalog, see `references/troubleshooting.md`.
 
 **`driftless: command not found`** → `npm install -g @driftless-sh/cli`
 
-**`Unauthorized` / `403`** → `driftless login --key <api-key>` (get key at driftless.icu → Settings → API Keys)
+**`Unauthorized` / `403`** → `driftless login --key <api-key>` (get key at app.driftless.icu → Settings → API Keys)
 
 **`context get` returns stale content** → topic is marked stale (files it tracks changed). Read `stale_reason`. After reviewing the current code, update the topic (UC2).
 
@@ -443,9 +455,9 @@ For the full catalog, see `references/troubleshooting.md`.
 
 **`context add` errors with "pattern matches 0 files"** → the glob is wrong or the path doesn't exist in this checkout. Verify against the repo root, broaden the glob (e.g. `src/billing/**` instead of `src/billing/*.ts`), or use `--where` for an explicit path.
 
-**`sync` prints nothing under "stale"** → either no drift since you last looked (healthy), or the GitHub App is not installed (Cloud has no push events to compute drift from). Check `driftless doctor` — the GitHub App line is `INFO` when not installed; install at driftless.icu → Settings → Integrations.
+**`sync` prints nothing under "stale"** → either no drift since you last looked (healthy), or the GitHub App is not installed (Cloud has no push events to compute drift from). Check `driftless doctor` — the GitHub App line is `INFO` when not installed; install at app.driftless.icu → Settings → Integrations.
 
-**PR comment never appears on new PRs** → the GitHub App is not installed on the repo, or the repo is not linked to the workspace. Run `driftless doctor` to confirm. Install the App at driftless.icu → Settings → Integrations.
+**PR comment never appears on new PRs** → the GitHub App is not installed on the repo, or the repo is not linked to the workspace. Run `driftless doctor` to confirm. Install the App at app.driftless.icu → Settings → Integrations.
 
 ---
 

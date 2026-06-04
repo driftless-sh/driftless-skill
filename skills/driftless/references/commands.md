@@ -22,7 +22,7 @@ driftless login --key drift_xxx
 export DRIFTLESS_API_KEY=drift_xxx
 ```
 
-Get your API key at driftless.icu → Settings → API Keys.
+Get your API key at app.driftless.icu → Settings → API Keys.
 
 ---
 
@@ -224,6 +224,15 @@ driftless context delete <slug>
 driftless context delete <slug> --dry-run   # preview without deleting
 ```
 
+#### Move a topic to another workspace
+
+```bash
+driftless context move <slug> --to <workspace-slug>
+driftless context move <slug> --to <workspace-slug> --dry-run
+```
+
+A topic lives in exactly one workspace. `move` re-homes it and **resets it to a draft** in its new workspace (a vouch doesn't carry across workspaces). Requires owner/admin in the source workspace and membership in the target. Workspace-local anchors (repo links, relations) are dropped.
+
 #### Governance — a topic is authoritative only if approved
 
 Lifecycle: `draft → proposed → reviewed → archived`. `reviewed` is the **authoritative** state — the read response carries `governance.authoritative: true`. Treat `reviewed` as truth, `draft`/`proposed` as a hint. The model is *agents propose, humans approve*.
@@ -252,6 +261,21 @@ driftless context pr <slug> --reject <id>                          # close witho
 driftless context share <slug>            # public read-only link (driftless.icu/s/<token>)
 driftless context share <slug> --revoke   # turn the link off
 ```
+
+---
+
+### `driftless workspace`
+
+Navigate the workspaces you belong to. A workspace is the top-level container for context; a user can belong to many. `driftless login` registers all of them under one **scoped key**, so you switch without re-authenticating.
+
+```bash
+driftless workspace list            # the workspaces you belong to (● = active)
+driftless workspace current         # the active workspace
+driftless workspace switch <slug>   # operate on another one (no re-login)
+driftless workspace add --key <drift_…>   # register a workspace by its API key
+```
+
+Scoped credentials: one API key can be authorized for several workspaces (set the **Authorized workspaces** when you create the key in the dashboard). Access is always gated by your live membership — being removed from a workspace revokes the key there immediately. Switching to a workspace your key isn't scoped to surfaces a 403 with guidance.
 
 ---
 
