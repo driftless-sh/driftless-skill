@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.5.0
+  version: 3.7.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -90,6 +90,8 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 - It complements — never replaces — UC1. If you need context for an area you're reasoning about (not editing), still pull it explicitly with `context get`.
 - Controlled by the workspace toggle (`settings.auto_pull_context`); `driftless hooks disable` removes the hook from a machine entirely.
 
+**Write-after (the symmetric half).** The same install also wires two write-side hooks, gated by the same toggle: a **PostToolUse** hook observes which files you edit, and a **Stop** hook fires once at session end — if you worked in a source area with **no recorded context** (a real gap), it nudges you to persist what you learned, with a suggested `--pattern` derived from the files you actually touched. Read-before / write-after, one mechanism: the agent stops relying on remembering to persist. Claude-Code-only; other agents persist via the CLI as usual (UC2).
+
 ---
 
 ## Use Case 2 — Persist what you learned
@@ -97,6 +99,10 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 **Trigger:** You learned something durable — a gotcha, a decision, a constraint, an invariant — that future agents or teammates should know.
 
 **Rule:** If it would have saved you time to know this upfront, save it now. Do NOT keep discoveries in conversation memory only. Cloud is the source of truth.
+
+**The durability litmus — what deserves a topic:** *would a future code change meaningfully contradict this?* If yes, it is durable — the *why* the code can't show: a decision, an invariant, a gotcha that outlives the line that prompted it. If it merely restates what the code already says, or is a transient value that lives in the code, it is NOT a topic. Persist the reasoning, never a paraphrase of the implementation.
+
+**Persisting is two moves.** First distill the durable insight (what would you tell the next agent before it touches this area?). Then merge it as an **itemized delta** — append a `--gotcha` / `--decision` / `--invariant` to the right topic. You are adding a line to a living playbook, not rewriting it: never regenerate a whole topic when an append will do, and never clobber a `reviewed` topic — open a `pr` (see Governance below).
 
 **Write the topic as markdown `--content`.** The content body IS the topic: a clear, readable explanation, like a good doc. Use `--tags` (free-form) to label or group topics.
 
@@ -196,7 +202,9 @@ If you omit `--title`, it defaults to the slug — which reads badly. **Always s
 
 ### CRITICAL: Anchoring discipline
 
-Patterns claim a slice of the codebase. Size matters:
+**An anchor is a contract, not a convenience.** It declares which boundary of the codebase a topic *governs* — and that contract powers everything downstream: drift fires only when the anchored boundary changes, and the PR bot and `context get --files` deliver this topic only to work *inside* that boundary. A loose anchor poisons both — false drift on unrelated changes, and the topic leaking into work it has nothing to say about. The precision of every retrieval and every drift signal is set here, at authoring time.
+
+**Anchor to ONE boundary — a single service or module.** That boundary is a subtree in a monorepo (`apps/api/billing/**`) or a whole repo — same idea, two granularities. A concept that genuinely spans two services takes **two anchors**, not one wide glob. Size is the tell:
 
 | Match count | Verdict |
 |---|---|

@@ -115,10 +115,12 @@ All append flags are repeatable in a single invocation. The API runs the UPDATE 
 
 ## Anchoring discipline — in depth
 
-Anchors decide which files Cloud considers "covered" by this topic. Coverage drives:
-- Whether `context get --files <file>` matches the topic to a file.
-- Whether a push to the file marks the topic stale.
+**An anchor is a contract: it declares which boundary of the codebase a topic governs.** Anchor to ONE boundary — a single service or module — which is a subtree in a monorepo (`apps/api/billing/**`) or a whole repo (same idea, two granularities); a concept that spans two services takes two anchors, not one wide glob. That contract is what Cloud treats as "covered," and coverage drives every downstream signal:
+- Whether `context get --files <file>` matches the topic to a file (delivery precision).
+- Whether a push to the file marks the topic stale (drift precision).
 - Whether PR coverage marks the file as covered by topic context.
+
+A loose anchor poisons all three — false drift on unrelated changes, and the topic leaking into work it has nothing to say about. The precision of retrieval and drift is set here, at authoring time.
 
 ### Healthy anchor count
 
