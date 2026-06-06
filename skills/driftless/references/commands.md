@@ -50,10 +50,21 @@ Query and manage context topics — the team's shared repo knowledge.
 #### List all topics
 
 ```bash
-driftless context list
-driftless context list --status draft
-driftless context list --stale      # topics whose anchored code changed
+driftless context list                 # top 40, drifted-first (default cap to protect your context)
+driftless context list --all           # every topic, no cap
+driftless context list --limit 100     # cap to N rows (note: --json is uncapped by default)
+driftless context list --stale         # only topics whose anchored code changed
+driftless context list --suggested     # only not-yet-authoritative topics (draft + proposed)
+driftless context list --docs          # only topics with an anchored doc
+driftless context list --manual        # only manually-created topics
+driftless context list --auto          # only auto-created topics (scoped to the current repo)
+driftless context list --status draft  # filter by exact status
+driftless context list --repo <id>     # only topics scoped to a given repo
 ```
+
+`list` defaults to the 40 most relevant (drifted first, then most-recently updated) and prints `Showing N of M` when it caps — use `--all` or `--limit` to see more. `--json` returns the full set by default.
+
+`context search` returns the most relevant matches (ranked, capped at 50). Narrow with more terms rather than paging — `"quoted phrases"`, `OR`, and `-negation` are supported.
 
 #### Get specific context
 
