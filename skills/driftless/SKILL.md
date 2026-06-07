@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.7.0
+  version: 3.7.1
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -60,7 +60,7 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
    driftless context get <slug>
    driftless context search <keyword>
    ```
-   `search` returns the most relevant matches first (ranked, capped at 50) — narrow with more terms (`"quoted phrases"`, `OR`, `-negation`) rather than paging. `context list` shows the 40 most relevant (drifted first) and prints `Showing N of M`; pass `--all` or `--limit N` for more (`--json` is uncapped).
+   `search` returns the most relevant matches first (ranked, capped at 50) — narrow with more terms (`"quoted phrases"`, `OR`, `-negation`) rather than paging. `context list` shows the 40 most relevant (drifted first) and prints `Showing N of M`; pass `--all` or `--limit N` for more (`--json` is uncapped). This ranking + cap is enforced **server-side** (at the data surface), so the MCP `context_list` tool and the dashboard get the same bounded, drifted-first list — with `has_more` when truncated. List items are lightweight summaries; pull a topic's full body with `context get`.
 
 3. **About to edit specific files — match topics by path:**
    ```bash
