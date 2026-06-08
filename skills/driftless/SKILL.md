@@ -103,7 +103,14 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 **The durability litmus — what deserves a topic:** *would a future code change meaningfully contradict this?* If yes, it is durable — the *why* the code can't show: a decision, an invariant, a gotcha that outlives the line that prompted it. If it merely restates what the code already says, or is a transient value that lives in the code, it is NOT a topic. Persist the reasoning, never a paraphrase of the implementation.
 
-**Persisting is two moves.** First distill the durable insight (what would you tell the next agent before it touches this area?). Then merge it as an **itemized delta** — append a `--gotcha` / `--decision` / `--invariant` to the right topic. You are adding a line to a living playbook, not rewriting it: never regenerate a whole topic when an append will do, and never clobber a `reviewed` topic — open a `pr` (see Governance below).
+**What goes in `decisions` / `gotchas` / `invariants` — and what never does.** These fields hold the durable *why* a future code change would contradict. They are NOT a changelog: status, "done / shipped / TODO", dates, commit or PR references, and roadmap items do not belong here — that is what git history and the PR trail are for. A field that reads like a changelog is the #1 cause of walls; if you catch yourself writing a date or a "now we do X", it belongs in the commit message, not the topic.
+
+**Persisting is two moves.** First distill the durable insight (what would you tell the next agent before it touches this area?). Then choose the operation by *intent* — this is the whole game:
+
+- **Adding a genuinely new, standalone fact** → **append** it (`--gotcha` / `--decision` / `--invariant` / `--check`). Atomic and concurrency-safe; don't regenerate a whole topic to add one line.
+- **Correcting, refining, or the field already overlaps what's there** → **rewrite** it: `context get` → fold the new understanding into the old, dropping what's dead → `update --content` (or `--decisions` / `--gotchas` to replace one field). You leave the field coherent, never a pile of stale + new.
+
+Never clobber a `reviewed` topic either way — open a `pr` (the PR carries the rewrite; see Governance below). Append grows a topic; rewrite keeps it true. Together they make a wall impossible: the moment a field overlaps or goes stale, you rewrite instead of stacking another append.
 
 **Write the topic as markdown `--content`.** The content body IS the topic: a clear, readable explanation, like a good doc. Use `--tags` (free-form) to label or group topics.
 
@@ -137,6 +144,25 @@ Append flags (`--gotcha`, `--decision`, `--invariant`, `--check`) are repeatable
 - **Blocking error** when a pattern matches 0 real files. The create/update is aborted; fix the glob or use `--where` for an explicit path
 
 Trust the validator. If it says 0 matches, the topic would have been instantly stale on day one.
+
+### CRITICAL: Correcting or consolidating a topic (the rewrite path)
+
+Append grows a topic; **rewrite keeps it true.** Rewrite the moment you spot a **wall** — any of:
+
+- the same point restated across several bullets (redundancy);
+- an old claim and its correction both present (contradiction);
+- changelog-style entries — dates, "shipped", commit refs (those belong in git, not the topic).
+
+Recipe: `context get <slug>` (pull fresh — a rewrite is read-modify-write and can lose a concurrent append, so never rewrite from stale memory) → integrate the new understanding into the old, dropping what's dead → `update --content "..."` (or `--decisions` / `--gotchas` to replace a single field). For a `reviewed` topic the same rewrite goes through a topic-PR (`context pr <slug> --open --content @new.md`) — see Governance.
+
+```bash
+driftless context get billing-flow                     # read the current field first
+driftless context update billing-flow \
+  --decisions "Async webhook handler — absorbs Stripe retry storms; supersedes the earlier sync note"
+# one coherent decision replacing three overlapping ones — not a fourth append
+```
+
+The append/replace mechanics of every flag are in `references/topic-anatomy.md`.
 
 ### If no topic covers this area
 
@@ -228,6 +254,26 @@ driftless context add all-controllers --pattern "**/*.controller.ts"  # don't
 ```
 
 If you reach for `src/**`, the answer is more topics, not a wider glob. One topic per *concept*.
+
+**The hub-and-spoke shape.** A whole domain is not a topic — it's a *hub* with *spokes*. Tempted to write `api-backend --pattern "apps/api/**"`? That one topic drifts on every change anywhere in the backend and leaks into work it has nothing to say about. Split it:
+
+```text
+❌  api-backend  --pattern "apps/api/**"        # owns everything → drifts on everything
+
+✅  api-backend          (hub: how the services fit together — light or relations-only anchor)
+     ├─ billing-service     --pattern "apps/api/billing/**"
+     ├─ logistics-service   --pattern "apps/api/logistics/**"
+     └─ auth-service        --pattern "apps/api/auth/**"
+```
+
+Connect the hub to its spokes with typed relations (or `[[slug]]` mentions):
+
+```bash
+driftless context update api-backend \
+  --rel documents:billing-service --rel documents:logistics-service --rel documents:auth-service
+```
+
+Each spoke drifts only when *its* service changes; the hub is the map. This uses features you already have — narrow anchors + relations — just composed into one shape.
 
 Manage patterns atomically — `--add-pattern` / `--remove-pattern` are repeatable AND idempotent:
 
@@ -476,7 +522,8 @@ For the full catalog, see `references/troubleshooting.md`.
 - **Trust the pattern validator.** When the CLI says a glob matches 0 real files, do not force it — the topic will be a zombie before it is useful.
 - **Persist after every session.** The loop only works if what you learned goes back to Cloud (UC2). A gotcha you discover but don't write down is lost — don't leave it in conversation memory.
 - **Do NOT split a discovery into N updates.** Every PATCH bumps version and writes a history event. Batch related `--gotcha` / `--decision` / `--add-pattern` into one invocation.
-- **Do NOT create catch-all topics** (`--pattern "src/**"`). One topic per concept; multi-anchor instead.
+- **Rewrite to consolidate; append to add.** A field that overlaps or contradicts itself is a wall — replace it coherently (`context get` → integrate → `update --content`/`--decisions`), don't stack another append. (Batching still applies *within* an append.)
+- **Do NOT create catch-all topics** (`--pattern "src/**"`). One topic per concept; a whole domain is a hub with per-service spokes, not one wide glob.
 - **The PR comment is for the reviewer, not a gap-finder.** It delivers the team's recorded context to whoever reviews — it does not score coverage or assign homework.
 
 ---

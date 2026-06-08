@@ -67,9 +67,18 @@ specific thing surfaced on top of the content — never to fill a form.
 
 - **`patterns[]`** — globs (e.g. `src/billing/**`) that claim a slice of the codebase. `--pattern` replaces the whole list; `--add-pattern` / `--remove-pattern` are atomic and idempotent.
 
+## Append vs Rewrite — pick the operation by intent
+
+Two operations, two triggers — not a default plus an escape hatch:
+
+- **Append** (`--gotcha` / `--decision` / `--invariant` / `--check`, `--add-pattern`) — for a **genuinely new, standalone fact** that doesn't touch what's already there. Atomic and concurrency-safe (each value lands under a row lock).
+- **Rewrite** (`context get` → integrate new into old → `update --content` / `--decisions` / `--gotchas`) — the move whenever you are **correcting, refining, or the field already overlaps / contradicts / has gone stale**. It is read-modify-write, so pull fresh with `context get` immediately before, or you can lose a concurrent append. For a `reviewed` topic, the rewrite goes through a topic-PR.
+
+Append grows a topic; rewrite keeps it true. A field that reads like a changelog — dates, "shipped", commit refs, status — is the classic wall: rewrite it down to the durable *why*, which is all `decisions` / `gotchas` / `invariants` should ever hold (the rest lives in git).
+
 ## Append vs Replace semantics
 
-This is the most common source of accidental data loss. Read carefully:
+The table below is the per-flag *mechanics* (which flag mutates how). The *intent* — when to append vs rewrite — is the section just above. This is the most common source of accidental data loss. Read carefully:
 
 | Flag | Semantics |
 |---|---|
@@ -88,7 +97,7 @@ This is the most common source of accidental data loss. Read carefully:
 | `--add-pattern "..."` (repeatable, idempotent) | Append a single pattern (no-op if already there) |
 | `--remove-pattern "..."` (repeatable, idempotent) | Remove a single pattern (no-op if absent) |
 
-**Rule of thumb:** singular flags (`--gotchas`, `--decisions`, `--pattern` on update) REPLACE; their singular/append counterparts (`--gotcha`, `--decision`, `--add-pattern`) APPEND. When in doubt, append.
+**Rule of thumb:** plural flags (`--gotchas`, `--decisions`, `--pattern` on update) REPLACE the whole field; their singular counterparts (`--gotcha`, `--decision`, `--add-pattern`) APPEND one entry. To **add** a standalone fact, append. To **correct or consolidate**, rewrite from a fresh `context get` — replace is destructive, so always integrate the old before you overwrite.
 
 ## Batching — one PATCH, not N
 
@@ -148,6 +157,32 @@ driftless context add ecommerce --pattern "src/**"
 ```
 
 If you find yourself reaching for `src/**`, the answer is **more topics, not a wider glob**. One topic per concept.
+
+### Hub-and-spoke — the shape of a domain
+
+A whole domain (a backend, a frontend app, a platform layer) is not one topic — it is a **hub** that documents how the pieces fit, plus one **spoke** per service/module with its own narrow anchor. The hub carries the map and is anchored lightly (or only via relations); the spokes carry the detail and the drift signal.
+
+```text
+❌  one topic owns the domain — drifts on every change, leaks into all work
+    api-backend  --pattern "apps/api/**"
+
+✅  hub + per-service spokes — each spoke drifts only when its service changes
+    api-backend          (overview; light or relations-only anchor)
+     ├─ billing-service     --pattern "apps/api/billing/**"
+     ├─ logistics-service   --pattern "apps/api/logistics/**"
+     └─ auth-service        --pattern "apps/api/auth/**"
+```
+
+Wire the hub to its spokes with typed relations (and/or `[[slug]]` mentions in the hub's body):
+
+```bash
+driftless context update api-backend \
+  --rel documents:billing-service \
+  --rel documents:logistics-service \
+  --rel documents:auth-service
+```
+
+`context graph api-backend` then renders the domain as a hub with its spokes. This is the same "one topic per concept" rule, viewed as a graph: the concept *api-backend* is the relationship between services, not the union of their files.
 
 ### Managing anchors over time
 
