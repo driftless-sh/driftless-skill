@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.7.1
+  version: 3.8.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -285,6 +285,20 @@ driftless context update billing-flow \
 
 See `references/topic-anatomy.md` for the full reference on fields, append-vs-replace semantics, and status lifecycle.
 
+### Two ways to link — and both now show in the graph
+
+There are two ways to connect topics. They are complementary, not redundant — pick by how strong and typed the connection is:
+
+| | `[[slug]]` mention | Typed relation (`--rel`) |
+|---|---|---|
+| How | written inline in any free-text field | `--rel <type>:<slug>` |
+| Strength | weak — a passing reference | strong — a declared edge |
+| Typed? | no | yes (`depends_on`, `blocks`, …) |
+| Endpoint must exist? | no (dead links allowed, rot silently) | yes (both ends) |
+| Use when | a gotcha/decision only makes sense given another topic | the relationship itself is the fact (A depends_on B) |
+
+**Both render in the graph** (`context graph`, the dashboard Topic Graph, and `context relations`): typed relations as solid typed edges, `[[mentions]]` as faint dashed `mention` edges. So a graph authored entirely with mentions is no longer empty — but reach for `--rel` when the *relationship* is what matters.
+
 ### Linking topics with `[[slug]]`
 
 Topics are not islands. When the thing you are documenting only makes sense in the context of *another* topic — that's a link, not a copy-paste of duplicated detail.
@@ -312,6 +326,8 @@ driftless context graph <slug>         # local relation graph around this topic
 ```
 
 Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`, `documents`, `risk_for`.
+
+Typed relations draw as **solid** edges in the graph; `[[mentions]]` draw as **dashed** `mention` edges. If a mention captures a real dependency, promote it with `--rel` — that turns a weak dashed link into a strong typed one.
 
 ### Governance — everything is one topic that evolves
 

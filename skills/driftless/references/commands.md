@@ -140,12 +140,12 @@ driftless context update <slug> \
   --remove-pattern "src/billing/legacy/**"
 ```
 
-- **Singular** flag (`--gotchas`, `--decisions`, `--pattern`) = REPLACE the whole field.
+- **Plural/replace** flags (`--gotchas`, `--decisions`, `--invariants`, `--checks`, `--pattern`) = REPLACE the whole field.
 - **Append** flags (`--gotcha`, `--decision`, `--invariant`, `--check`) = APPEND a new line. Pass each as many times as you want — every value is appended atomically in a single PATCH (the SQL UPDATE runs under a row lock so concurrent appends don't lose data).
 - `--add-pattern` / `--remove-pattern` are idempotent: running the same one twice is a no-op. Both can fire in the same PATCH — remove applies first, then add.
 - Every PATCH bumps `version` and writes a history event, so **batch related changes into ONE invocation** rather than splitting into N small ones.
 
-Other `context update` flags: `--content` (full markdown body), `--tags`, `--status <reviewed|draft>`, `--where` (single file path), `--gotchas` (replace all gotchas), `--decisions` (replace all decisions), `--ownership`, `--pattern` (replace all patterns), `--enforce "rule"`, `--dry-run`, `--json`, `--check` (required check, repeatable).
+Other `context update` flags: `--content` (full markdown body), `--tags`, `--status <reviewed|draft>`, `--where` (single file path), `--gotchas` (replace all gotchas), `--decisions` (replace all decisions), `--invariants` (replace all invariants, repeatable = whole array), `--checks` (replace all required_checks, repeatable = whole array), `--ownership`, `--pattern` (replace all patterns), `--enforce "rule"`, `--dry-run`, `--json`, `--check` (required check, repeatable).
 
 Get `--help` on any subcommand for the full flag list:
 
@@ -193,6 +193,8 @@ driftless context update refund-flow \
 - Slug grammar: lowercase alphanumerics + hyphens, must start with `[a-z0-9]`. Anything else is ignored.
 - Self-references are silently stripped.
 - Dead links (slugs that don't resolve to a real topic) are accepted in writes but never produce a backlink on the other side — they sit silently in `references_topics` until you fix them.
+
+**Mentions vs typed relations.** `[[slug]]` is the *weak* link (a passing reference). A *typed* relation (`context update <slug> --rel depends_on:other`) is the strong, declared edge. **Both now render in `context graph`, `context relations`, and the dashboard graph** — typed as solid edges, mentions as faint dashed `mention` edges. Use `[[…]]` when a note only makes sense given another topic; use `--rel` when the relationship itself is the fact.
 
 #### Cross-repo: link a topic to another repo
 

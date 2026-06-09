@@ -91,13 +91,15 @@ The table below is the per-flag *mechanics* (which flag mutates how). The *inten
 | `--decision "..."` (repeatable) | **Append** a decision |
 | `--decisions "..."` | **Replace** the whole decisions list — destructive |
 | `--invariant "..."` (repeatable) | **Append** an invariant |
+| `--invariants "..."` (repeatable) | **Replace** the whole invariants list — destructive |
 | `--check "..."` (repeatable) | **Append** a required check |
+| `--checks "..."` (repeatable) | **Replace** the whole required_checks list — destructive |
 | `--pattern "..."` (repeatable on `add`) | Set initial patterns |
 | `--pattern "..."` on `update` | **Replace** the whole patterns list — destructive |
 | `--add-pattern "..."` (repeatable, idempotent) | Append a single pattern (no-op if already there) |
 | `--remove-pattern "..."` (repeatable, idempotent) | Remove a single pattern (no-op if absent) |
 
-**Rule of thumb:** plural flags (`--gotchas`, `--decisions`, `--pattern` on update) REPLACE the whole field; their singular counterparts (`--gotcha`, `--decision`, `--add-pattern`) APPEND one entry. To **add** a standalone fact, append. To **correct or consolidate**, rewrite from a fresh `context get` — replace is destructive, so always integrate the old before you overwrite.
+**Rule of thumb:** plural flags (`--gotchas`, `--decisions`, `--invariants`, `--checks`, `--pattern` on update) REPLACE the whole field; their singular counterparts (`--gotcha`, `--decision`, `--invariant`, `--check`, `--add-pattern`) APPEND one entry. To **add** a standalone fact, append. To **correct or consolidate**, rewrite from a fresh `context get` — replace is destructive, so always integrate the old before you overwrite.
 
 ## Batching — one PATCH, not N
 
@@ -233,7 +235,7 @@ driftless context graph <slug>         # local graph in the CLI
 
 Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`, `documents`, `risk_for`.
 
-The dashboard Topic Graph (`/graph`) renders the full workspace knowledge graph with color-coded nodes and relation edges.
+**Both link kinds render in every graph surface** (`context graph`, `context relations`, the dashboard Topic Graph): typed relations as **solid** typed edges, `[[mentions]]` as faint **dashed** `mention` edges. A weak mention is dropped when a typed edge already covers the same direction (the typed type wins). So a graph authored only with mentions still connects — but when the *relationship* is the fact, use `--rel`; promoting a mention to a typed relation turns a dashed link solid.
 
 ## Status lifecycle — governance
 
