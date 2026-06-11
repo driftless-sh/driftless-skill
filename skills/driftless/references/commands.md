@@ -60,11 +60,23 @@ driftless context list --manual        # only manually-created topics
 driftless context list --auto          # only auto-created topics (scoped to the current repo)
 driftless context list --status draft  # filter by exact status
 driftless context list --repo <id>     # only topics scoped to a given repo
+driftless context list --tag <name>    # only topics in a category (repeatable; OR)
 ```
 
 `list` defaults to the 40 most relevant (drifted first, then most-recently updated) and prints `Showing N of M` when it caps — use `--all` or `--limit` to see more. `--json` returns the full set by default.
 
-`context search` returns the most relevant matches (ranked, capped at 50). Narrow with more terms rather than paging — `"quoted phrases"`, `OR`, and `-negation` are supported.
+`context search` returns the most relevant matches (ranked, capped at 50). Narrow with more terms rather than paging — `"quoted phrases"`, `OR`, and `-negation` are supported. Add `--tag <name>` (repeatable) to scope the search to a category.
+
+#### Tags — the category registry
+
+```bash
+driftless tags                                  # list tags with topic counts (paginated, most-used first)
+driftless tags add <name> --description "..."   # pre-create a tag (idempotent)
+driftless tags rename <old> <new>               # rename everywhere (rewrites topics; owner/admin)
+driftless tags rm <name>                        # delete + detach from every topic (owner/admin)
+```
+
+Tag names normalize on every surface (lowercase, spaces→dashes), so `Facturación` and `facturacion ` are the same tag. Attaching a tag that was never pre-created auto-registers it — the registry is curation, never a gate.
 
 #### Get specific context
 
