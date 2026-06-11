@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.8.0
+  version: 3.9.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -367,7 +367,7 @@ As an agent: when you discover something, persist it (UC2) — that lands as a d
 
 ## Use Case 0 — First-time setup
 
-**Trigger:** `driftless context list` returns empty, or you just ran `driftless install-skill` for the first time.
+**Trigger:** `driftless context list` returns empty; you just ran `driftless install-skill` for the first time; or the user says "Set up Driftless", "install driftless", "driftless login".
 
 Driftless is a notetaker, not an indexer. Onboarding is three commands: authenticate, install the skill, create the first topic.
 
@@ -384,27 +384,14 @@ Driftless is a notetaker, not an indexer. Onboarding is three commands: authenti
    driftless install-skill
    ```
 
-3. **Create your first topic**:
+3. **Create your first topic — about something REAL.** Pick the one thing about this repo you would tell a new teammate before they edit: the gotcha that bit you, the decision behind the architecture, the invariant nothing may break. Anchor it to the module it governs (the CLI validates the glob locally before writing). One batched command, not three updates:
    ```bash
-   driftless context add onboarding-context \
-     --what "Shared context map for this repo or workflow." \
-     --how "Captures what humans and agents need to know before working here."
+   driftless context add billing-webhooks --title "Webhooks" \
+     --what "Stripe webhook ingestion and its idempotency rules." \
+     --gotcha "Stripe delivers at-least-once — handlers must short-circuit on a seen event.id" \
+     --pattern "src/billing/webhooks/**"
    ```
-
-4. **Fill in structured context** as you learn:
-   ```bash
-   driftless context update onboarding-context \
-     --gotcha "What I learned that was not documented" \
-     --decision "Why the team does it this way" \
-     --invariant "What must always be true" \
-     --check "What to verify before changing this area"
-   ```
-
-5. **Anchor to file paths once you know which slice this topic covers** (the CLI validates the glob locally before writing):
-   ```bash
-   driftless context update onboarding-context \
-     --add-pattern "apps/*/src/**" --add-pattern "docs/**"
-   ```
+   Know nothing concrete yet? Then skip the topic — work first and persist what you learn (UC2). A generic placeholder topic ("shared context map for this repo") documents nothing and rots on day one.
 
 ### Verify setup
 
@@ -413,7 +400,7 @@ driftless doctor
 driftless context doctor
 ```
 
-`driftless doctor` checks auth, connectivity, workspace, repo link, and AGENTS.md presence. `driftless context doctor` audits the topic layer (stale / orphaned / zombie / draft / docs_pending / repo_leak).
+`driftless doctor` checks auth, connectivity, workspace, repo link, and AGENTS.md presence. `driftless context doctor` audits the topic layer (stale / orphaned / zombie / draft / docs_pending / repo_leak). If `login` or any command fails with `Unauthorized`/`403` or a connection error, see `references/troubleshooting.md`.
 
 ### How topics grow over time
 
@@ -474,9 +461,12 @@ driftless context update billing \
 ```bash
 driftless login                                       # if not already
 driftless install-skill                               # writes CLAUDE.md, AGENTS.md, .driftless/
-driftless context add onboarding-context \
-  --what "Shared context map for this repo." \
-  --how "Captures what humans and agents need to know before working here."
+# First topic = something REAL you already know about this repo, anchored narrow:
+driftless context add api-auth --title "Auth" \
+  --what "Every API request is workspace-scoped by a global guard." \
+  --invariant "No route may bypass the workspace guard" \
+  --pattern "src/auth/**"
+# Nothing concrete to record yet? Skip it — persist your first real learning (UC2).
 ```
 
 ### Example 4 — Pre-commit refresh

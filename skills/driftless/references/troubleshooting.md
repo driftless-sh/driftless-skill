@@ -50,12 +50,14 @@ If the slug is wrong, re-authenticate with a key from the correct workspace.
 
 **Cause:** No one has created topics for this workspace/repo yet.
 
-**Solution:** Create the first topic:
+**Solution:** Create the first topic — about something real you already know, anchored to the module it governs:
 ```bash
-driftless context add onboarding-context \
-  --what "Shared context map for this repo." \
-  --how "Captures what humans and agents need to know."
+driftless context add billing-webhooks --title "Webhooks" \
+  --what "Stripe webhook ingestion and its idempotency rules." \
+  --gotcha "Stripe delivers at-least-once — handlers must short-circuit on a seen event.id" \
+  --pattern "src/billing/webhooks/**"
 ```
+Nothing concrete to record yet? Work first and persist what you learn (UC2) — a generic placeholder topic documents nothing.
 
 ### `context get <slug>` returns "stale"
 
