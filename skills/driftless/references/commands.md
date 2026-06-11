@@ -76,7 +76,7 @@ driftless tags rename <old> <new>               # rename everywhere (rewrites to
 driftless tags rm <name>                        # delete + detach from every topic (owner/admin)
 ```
 
-Tag names normalize on every surface (lowercase, spaces→dashes), so `Facturación` and `facturacion ` are the same tag. Attaching a tag that was never pre-created auto-registers it — the registry is curation, never a gate.
+Tag names normalize on every surface (lowercase, spaces→dashes), so `Billing` and `billing ` are the same tag. Attaching a tag that was never pre-created auto-registers it — the registry is curation, never a gate.
 
 #### Get specific context
 
