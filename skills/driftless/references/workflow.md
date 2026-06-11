@@ -148,13 +148,12 @@ driftless context relations refund-flow
 driftless context graph refund-flow
 ```
 
-## PR Bot Loop
+## PR Loop (the Auditor)
 
-Every PR comment shows:
+The only PR comment Driftless posts is the Auditor's, and only when it has a finding:
 
-- Topics matched by changed files.
-- Decisions and gotchas relevant to review.
-- Files outside any topic.
-- Suggested commands to add anchors or create topics.
+- The finding itself — what the change may contradict, as a reviewable proposal.
+- The recorded gotchas / decisions / invariants for the affected topics, riding along.
+- Stale flags on any topic whose note predates the code.
 
-Use those gaps to grow the topic layer over time.
+A clean PR is silent — no anchor-match spam. To find UNCOVERED areas, use the coverage map (`driftless_context_coverage` on the MCP, or the dashboard) and grow the topic layer from there.

@@ -144,21 +144,16 @@ If you see drift unexpectedly, the branch IS in the tracked set. Use `driftless 
 - Install the App at app.driftless.icu → Settings → Integrations.
 - Confirm the repo is in the workspace: `driftless context list --auto` (or open the dashboard).
 
-### PR comment shows everything as "outside any topic"
+### PR got no comment at all
 
-**Cause:** No topic anchors cover the files this PR touched.
+**Cause (by design):** the only PR comment is the Auditor's, and it posts only when it has a finding. A clean PR — or a workspace without the Auditor configured (no model key) — is silent.
 
-**Solution:** That's the bot's job — close the gap. For each path in the comment's "files not anchored to any topic" section:
-- If the path belongs to an existing topic, extend it:
-  ```bash
-  driftless context update <slug> --add-pattern "<glob>"
-  ```
-- If the path is a new concept, create a topic:
-  ```bash
-  driftless context add <slug> --pattern "<glob>"
-  ```
-
-The next PR touching the same area will show those files as covered.
+**Solution (if you expected a finding):**
+- `driftless doctor` — GitHub App installed + repo linked.
+- Dashboard → Settings → Agents — the Auditor needs a configured model key (BYOM).
+- To find UNCOVERED areas (the old comment's "gap" section), use the coverage map instead:
+  the `driftless_context_coverage` MCP tool or the dashboard — then close gaps with
+  `context update <slug> --add-pattern "<glob>"` or a new topic.
 
 ---
 

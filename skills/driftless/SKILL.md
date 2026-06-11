@@ -1,10 +1,10 @@
 ---
 name: driftless
-description: Driftless is the team's shared context layer for AI coding agents in any repo. Topics are durable engineering memory persisted in Cloud — what / how / gotchas / decisions / invariants / checks — anchored to globs that point at real files. The core loop is simple — persist what you learn after each session, pull it back the next time you touch that area. On a PR that touches a documented area, the bot delivers the team's recorded context (gotchas / decisions / invariants) to the reviewer; it informs and never blocks. Use BEFORE editing code to pull team context (`context get` / `context search`) — drifted topics carry a freshness badge inline — and AFTER discovering a gotcha or architectural decision to persist it (`context update` / `context add`). Triggers in repos containing `.driftless/` or an `AGENTS.md` mentioning Driftless, and on phrases like "starting work", "how does X work in this repo", "found a gotcha", "about to push", "context get", "context add", "context update", "driftless".
+description: Driftless is the team's shared context layer for AI coding agents in any repo. Topics are durable engineering memory persisted in Cloud — what / how / gotchas / decisions / invariants / checks — anchored to globs that point at real files. The core loop is simple — persist what you learn after each session, pull it back the next time you touch that area. On a PR, the Auditor agent reviews the change against the team's recorded context and comments only when it has a finding — the affected topics' gotchas / decisions / invariants ride along with it; it informs and never blocks. Use BEFORE editing code to pull team context (`context get` / `context search`) — drifted topics carry a freshness badge inline — and AFTER discovering a gotcha or architectural decision to persist it (`context update` / `context add`). Triggers in repos containing `.driftless/` or an `AGENTS.md` mentioning Driftless, and on phrases like "starting work", "how does X work in this repo", "found a gotcha", "about to push", "context get", "context add", "context update", "driftless".
 license: MIT
 metadata:
   author: Driftless
-  version: 3.9.0
+  version: 3.10.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -13,7 +13,7 @@ metadata:
 
 Cloud is the source of truth. You pull team context before coding and persist what you learn back to Cloud. You do not own topics — the team does.
 
-Driftless is a team-memory layer. It informs; it never blocks. Topics are anchored to globs. The core loop is simple: after a session you persist what you learned; before touching an area you pull what the team already knows. Drift surfaces as a freshness badge on the topic itself when you retrieve it — not as a report you must go fetch. On a PR, the bot delivers the recorded context to the reviewer; it never scores coverage.
+Driftless is a team-memory layer. It informs; it never blocks. Topics are anchored to globs. The core loop is simple: after a session you persist what you learned; before touching an area you pull what the team already knows. Drift surfaces as a freshness badge on the topic itself when you retrieve it — not as a report you must go fetch. On a PR, the Auditor comments only when it finds something — and the recorded context for the affected topics rides along with the finding. No finding, no comment; it never scores coverage.
 
 ## When to use this skill
 
@@ -492,9 +492,9 @@ driftless context doctor
 ```
 
 ### Example 6 — A teammate is reviewing your PR
-**Situation:** Your PR touches files anchored to `billing-flow`. The Driftless bot posts one comment on the PR with what the team recorded about that area.
+**Situation:** Your PR touches files anchored to `billing-flow`. The Auditor reviews the change against what the team recorded and, **if it has a finding**, posts ONE comment: the finding plus the recorded gotchas, decisions and invariants for the affected topics.
 
-**What happens:** The reviewer — who isn't running the CLI — sees the gotchas, decisions and invariants for `billing-flow` right in the PR, so they review *with* the context instead of without it. If the topic is stale, the comment flags it. There is nothing to "fix" — but if your change altered how the area works, update the topic so the note stays true:
+**What happens:** The reviewer — who isn't running the CLI — sees the signal AND the context together, so they review *with* the team's memory instead of without it. Stale topics are flagged inside the comment. A clean PR gets **no comment at all** — context arrives anchored to a real signal, never as anchor-match spam. If your change altered how the area works, update the topic so the note stays true:
 ```bash
 driftless context update billing-flow \
   --gotcha "..." --decision "..."   # keep the team's memory honest
@@ -518,7 +518,7 @@ For the full catalog, see `references/troubleshooting.md`.
 
 **`sync` prints nothing under "stale"** → either no drift since you last looked (healthy), or the GitHub App is not installed (Cloud has no push events to compute drift from). Check `driftless doctor` — the GitHub App line is `INFO` when not installed; install at app.driftless.icu → Settings → Integrations.
 
-**PR comment never appears on new PRs** → the GitHub App is not installed on the repo, or the repo is not linked to the workspace. Run `driftless doctor` to confirm. Install the App at app.driftless.icu → Settings → Integrations.
+**PR comment never appears on new PRs** → by design the only PR comment is the Auditor's, and it posts ONLY when it has a finding — a clean PR is silent. If you expected a finding: check the GitHub App is installed and the repo linked (`driftless doctor`), and that the Auditor is configured (dashboard → Settings → Agents — it needs a model key).
 
 ---
 
@@ -530,7 +530,7 @@ For the full catalog, see `references/troubleshooting.md`.
 - **Do NOT split a discovery into N updates.** Every PATCH bumps version and writes a history event. Batch related `--gotcha` / `--decision` / `--add-pattern` into one invocation.
 - **Rewrite to consolidate; append to add.** A field that overlaps or contradicts itself is a wall — replace it coherently (`context get` → integrate → `update --content`/`--decisions`), don't stack another append. (Batching still applies *within* an append.)
 - **Do NOT create catch-all topics** (`--pattern "src/**"`). One topic per concept; a whole domain is a hub with per-service spokes, not one wide glob.
-- **The PR comment is for the reviewer, not a gap-finder.** It delivers the team's recorded context to whoever reviews — it does not score coverage or assign homework.
+- **The PR comment is the Auditor's finding plus the team's recorded context — signal-only.** A clean PR gets no comment. It never scores coverage or assigns homework; gap-finding lives in the coverage map (`context coverage` on the MCP, or the dashboard).
 
 ---
 

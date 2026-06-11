@@ -46,12 +46,12 @@ The CLI validates patterns against the local checkout before writing. A zero-mat
 
 GitHub pushes and PR activity go to Cloud:
 
-- Stores repo activity metadata for audit.
+- Stores repo activity metadata for audit (every PR↔topic match is recorded, comment or not).
 - Marks a topic stale when anchored files change on a tracked branch.
-- Posts a PR comment showing matched topics and uncovered files.
-- Suggests the next command to close gaps: add a pattern to an existing topic or create a new topic.
+- Queues the Auditor on PRs that touch documented areas; the Auditor posts ONE comment only when it has a finding, carrying the affected topics' recorded context.
+- Gap-finding lives in the coverage map (MCP `driftless_context_coverage` / dashboard), not in PR comments.
 
-The bot informs; it never blocks.
+The Auditor informs; it never blocks. A clean PR is silent.
 
 ### 4. Agent Refresh
 
