@@ -89,7 +89,8 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 `driftless install-skill` installs a Claude Code **PreToolUse hook** that does UC1 for you: before every `Edit`/`Write`, it injects the team's **reviewed context** for that file automatically. It is **inert until a workspace admin turns it on** at the dashboard → Settings → Automations.
 
 - Only **reviewed** topics auto-inject (a draft is a hint, not truth — it never auto-injects). This is the payoff of governance: approving a topic is what makes it reach the agent.
-- Deduped per session (the same area injects once, not on every edit), size-capped, and a silent no-op when nothing matches.
+- Deduped per session (the same area injects once, not on every edit), size-capped (a signal-first brief under a fixed token budget), and a silent no-op when nothing matches.
+- Local-first: context is served from a per-machine topic snapshot synced in the background (delta-sync against Cloud), so an edit never waits on the network — milliseconds, not round-trips. Cloud stays the source of truth.
 - It complements — never replaces — UC1. If you need context for an area you're reasoning about (not editing), still pull it explicitly with `context get`.
 - Controlled by the workspace toggle (`settings.auto_pull_context`); `driftless hooks disable` removes the hook from a machine entirely.
 
