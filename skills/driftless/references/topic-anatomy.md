@@ -72,7 +72,7 @@ specific thing surfaced on top of the content — never to fill a form.
 Two operations, two triggers — not a default plus an escape hatch:
 
 - **Append** (`--gotcha` / `--decision` / `--invariant` / `--check`, `--add-pattern`) — for a **genuinely new, standalone fact** that doesn't touch what's already there. Atomic and concurrency-safe (each value lands under a row lock).
-- **Rewrite** (`context get` → integrate new into old → `update --content` / `--decisions` / `--gotchas`) — the move whenever you are **correcting, refining, or the field already overlaps / contradicts / has gone stale**. It is read-modify-write, so pull fresh with `context get` immediately before, or you can lose a concurrent append. For a `reviewed` topic, the rewrite goes through a topic-PR.
+- **Rewrite** (`context get` → integrate new into old → `update --content` / `--decisions` / `--gotchas`) — the move whenever you are **correcting, refining, or the field already overlaps / contradicts / has gone stale**. It is read-modify-write, so pull fresh with `context get` immediately before, or you can lose a concurrent append. For a Knowledge (`reviewed`) topic, the rewrite goes through a Suggested edit.
 
 Append grows a topic; rewrite keeps it true. A field that reads like a changelog — dates, "shipped", commit refs, status — is the classic wall: rewrite it down to the durable *why*, which is all `decisions` / `gotchas` / `invariants` should ever hold (the rest lives in git).
 
@@ -239,30 +239,30 @@ Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`
 
 ## Status lifecycle — governance
 
-A topic is **authoritative only if approved**. The lifecycle is a governed state machine: **`draft → proposed → reviewed → archived`**.
+A topic matures along one trust axis: **Note → Knowledge**. A topic is **authoritative only once it's been added to knowledge**. Under the hood the status enum is **`draft → proposed → reviewed → archived`**.
 
-| Status | Meaning |
-|---|---|
-| `draft` | Not yet team-blessed. `--suggest`-generated topics start here. **Agents must not treat as authoritative** — it's a hint. |
-| `proposed` | Submitted for review, awaiting a human's approval. |
-| `reviewed` | **Reviewed.** A human approved it; the read response carries `governance.authoritative: true` + `approved_by` / `approved_at`. The agent treats this as truth. |
-| `archived` | Retired. Hidden from default `context list`. |
-| `orphaned` | Code-driven (its repo was deleted) — orthogonal to the governance states. |
+| Status | Label | Meaning |
+|---|---|---|
+| `draft` | **Note** | A draft / private observation. `--suggest`-generated topics start here. **Agents must not treat as authoritative** — it's a hint. |
+| `proposed` | **Up for review** | Put up for human review — a request to add it to knowledge, awaiting a human merge. |
+| `reviewed` | **Knowledge** | The team's source of truth — a note merged in. A human added it to knowledge; the read response carries `governance.authoritative: true` + `approved_by` / `approved_at`. The agent treats this as truth. |
+| `archived` | — | Retired. Hidden from default `context list`. |
+| `orphaned` | — | Code-driven (its repo was deleted) — orthogonal to the governance states. |
 
-The model is **agents propose, humans approve** — `approve`/`reject`/`merge` require a human identity (an ownerless agent key can propose but never bless):
+The model is **agents write notes, humans add them to knowledge** — `approve`/`reject`/`merge` require a human identity (an ownerless agent key puts a note up for review but never merges it in):
 
 ```bash
-driftless context propose <slug>     # draft → proposed
-driftless context approve <slug>     # → reviewed (authoritative), seals approved_by
-driftless context reject <slug>      # proposed → draft
+driftless context propose <slug>     # Note → Up for review (draft → proposed)
+driftless context approve <slug>     # add to knowledge — merge it in (→ reviewed, authoritative), seals approved_by
+driftless context reject <slug>      # back to a Note (proposed → draft)
 driftless context archive <slug>     # → archived
 ```
 
-To change an already-`reviewed` topic, **don't overwrite it — open a topic-PR** (`driftless context pr <slug> --open ...`); a human merges it (applies the change + re-approves). See `references/commands.md`.
+To change a topic that's already Knowledge (`reviewed`), **don't overwrite it — open a Suggested edit** (`driftless context pr <slug> --open ...`); a human merges it in (applies the change + re-approves). See `references/commands.md`.
 
 ## Visibility
 
-Every topic lives in the **workspace** and is visible to all its members. The one exception is a **private draft** (`status=draft` + `is_private`): visible only to its creator until they propose it or clear the private flag. Need true isolation between groups? use a separate workspace. (Approving a proposal into Institutional Context is a workspace **role** — owner/admin; members propose.)
+Every topic lives in the **workspace** and is visible to all its members. The one exception is a **private Note** (`status=draft` + `is_private`): visible only to its creator until they put it up for review or clear the private flag. Need true isolation between groups? use a separate workspace. (Merging a note into Knowledge is a workspace **role** — owner/admin; members put notes up for review.)
 
 ## Topic content body
 

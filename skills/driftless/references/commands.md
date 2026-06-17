@@ -54,7 +54,7 @@ driftless context list                 # top 40, drifted-first (default cap to p
 driftless context list --all           # every topic, no cap
 driftless context list --limit 100     # cap to N rows (note: --json is uncapped by default)
 driftless context list --stale         # only topics whose anchored code changed
-driftless context list --suggested     # only not-yet-authoritative topics (draft + proposed)
+driftless context list --suggested     # only not-yet-Knowledge topics (Notes + Up for review)
 driftless context list --docs          # only topics with an anchored doc
 driftless context list --manual        # only manually-created topics
 driftless context list --auto          # only auto-created topics (scoped to the current repo)
@@ -127,9 +127,11 @@ driftless context add "<slug>" \
 
 `--pattern` is **repeatable** — pass it multiple times for a multi-anchor topic. The CLI blocks creation if any pattern matches 0 files locally; emits a non-blocking `⚠ over-broad anchor` warning when the topic covers more than 100 files (healthy is 5–40 — see "Anchoring discipline" below).
 
-Other `context add` flags: `--what`, `--how`, `--where` (single file path), `--decisions`, `--gotchas`, `--ownership`, `--status proposed` (submit as a Proposal; omit → born a Note/draft — `reviewed` is not settable at create, only via `context approve`), `--file` (content from file path), `--dry-run`.
+Other `context add` flags: `--what`, `--how`, `--where` (single file path), `--decisions`, `--gotchas`, `--ownership`, `--status proposed` (put it **Up for review**; omit → born a Note/draft — `reviewed` is not settable at create, a note becomes Knowledge only via `context approve`), `--file` (content from file path), `--dry-run`, `--allow-secrets` (override the secret-scan; see below).
 
 For backward compat `--where path/to/file` still works as a single explicit anchor. Use `--pattern` for globs (the common case).
+
+**Secret hygiene.** Topics are team-visible and not encrypted at rest, so a write is **blocked** when any field looks like a credential — a provider key (AWS/GitHub/OpenAI/Anthropic/Stripe/Slack/Google/…), a private key block, a JWT, or a live Driftless key. The CLI scans locally before sending (the secret never leaves your machine); the API enforces the same scan as the authoritative gate for every client (MCP/agent, raw API). On a false positive, override with `--allow-secrets` (CLI) / `allow_secrets: true` (MCP / API body). The block masks the match — it never echoes the secret. Error code: `SECRET_DETECTED`.
 
 #### Update an existing topic
 
@@ -157,7 +159,7 @@ driftless context update <slug> \
 - `--add-pattern` / `--remove-pattern` are idempotent: running the same one twice is a no-op. Both can fire in the same PATCH — remove applies first, then add.
 - Every PATCH bumps `version` and writes a history event, so **batch related changes into ONE invocation** rather than splitting into N small ones.
 
-Other `context update` flags: `--content` (full markdown body), `--tags`, `--status <reviewed|draft>`, `--where` (single file path), `--gotchas` (replace all gotchas), `--decisions` (replace all decisions), `--invariants` (replace all invariants, repeatable = whole array), `--checks` (replace all required_checks, repeatable = whole array), `--ownership`, `--pattern` (replace all patterns), `--enforce "rule"`, `--dry-run`, `--json`, `--check` (required check, repeatable).
+Other `context update` flags: `--content` (full markdown body), `--tags`, `--status <reviewed|draft>`, `--where` (single file path), `--gotchas` (replace all gotchas), `--decisions` (replace all decisions), `--invariants` (replace all invariants, repeatable = whole array), `--checks` (replace all required_checks, repeatable = whole array), `--ownership`, `--pattern` (replace all patterns), `--enforce "rule"`, `--dry-run`, `--json`, `--check` (required check, repeatable), `--allow-secrets` (override the secret-scan — see "Secret hygiene" above).
 
 Get `--help` on any subcommand for the full flag list:
 
@@ -256,29 +258,29 @@ driftless context move <slug> --to <workspace-slug>
 driftless context move <slug> --to <workspace-slug> --dry-run
 ```
 
-A topic lives in exactly one workspace. `move` re-homes it and **resets it to a draft** in its new workspace (a vouch doesn't carry across workspaces). Requires owner/admin in the source workspace and membership in the target. Workspace-local anchors (repo links, relations) are dropped.
+A topic lives in exactly one workspace. `move` re-homes it and **resets it to a Note** in its new workspace (Knowledge status doesn't carry across workspaces). Requires owner/admin in the source workspace and membership in the target. Workspace-local anchors (repo links, relations) are dropped.
 
-#### Governance — a topic is authoritative only if approved
+#### Governance — a topic is authoritative only once it's been added to knowledge
 
-Lifecycle: `draft → proposed → reviewed → archived`. `reviewed` is the **authoritative** state — the read response carries `governance.authoritative: true`. Treat `reviewed` as truth, `draft`/`proposed` as a hint. The model is *agents propose, humans approve*.
+A topic matures along one trust axis: **Note → Knowledge** (status enum: `draft → proposed → reviewed → archived`). A **Note** is a draft (private by default; share it to the workspace and it's **Up for review**). **Knowledge** (`reviewed`) is the team's source of truth — *a note becomes knowledge once it's merged in* — and the read response carries `governance.authoritative: true`. Treat Knowledge as truth, a Note (`draft`/`proposed`) as a hint. The model is *agents write notes, humans add them to knowledge*.
 
 ```bash
-driftless context propose <slug>     # submit a draft for review
-driftless context approve <slug>     # make it authoritative (needs a human identity)
-driftless context reject <slug>      # send a proposed topic back to draft
+driftless context propose <slug>     # Note → Up for review (request to add to knowledge)
+driftless context approve <slug>     # add to knowledge — merge it in (needs a human identity)
+driftless context reject <slug>      # send an up-for-review topic back to a Note
 driftless context archive <slug>     # retire a topic
 ```
 
-**topic-PR** — propose a content change to an approved topic instead of overwriting it; a human reviews and merges:
+**Suggested edit** — propose a content change to a Knowledge topic instead of overwriting it; a human reviews and merges it in:
 
 ```bash
-driftless context pr <slug>                                        # list open proposals
-driftless context pr <slug> --open --summary "why" --content @new.md   # open a proposal
-driftless context pr <slug> --merge <id>                           # apply + approve (human)
-driftless context pr <slug> --reject <id>                          # close without applying (human)
+driftless context pr <slug>                                        # list open Suggested edits
+driftless context pr <slug> --open --summary "why" --content @new.md   # open a Suggested edit
+driftless context pr <slug> --merge <id>                           # merge it in (human)
+driftless context pr <slug> --reject <id>                          # close without merging (human)
 ```
 
-`approve` / `merge` / `reject` require a human identity — an ownerless agent key can propose but never bless. If a `reviewed` topic needs to change, open a `pr`; don't clobber it.
+`approve` / `merge` / `reject` require a human identity — an ownerless agent key writes notes but never merges them in. If a Knowledge (`reviewed`) topic needs to change, open a Suggested edit (`pr`); don't clobber it.
 
 #### Share a topic publicly
 

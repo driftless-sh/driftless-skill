@@ -81,7 +81,7 @@ The `stale` flag clears automatically when you next `context update` the topic.
 **Solution:**
 ```bash
 driftless context list                    # see everything
-driftless context list --suggested        # also show drafts
+driftless context list --suggested        # also show Notes (not-yet-Knowledge)
 ```
 
 If the area genuinely has no topic, create one (UC2).
@@ -281,12 +281,12 @@ driftless context delete <slug>
 
 ### `context doctor` reports many `draft` topics
 
-**Cause:** Suggested topics that were never promoted to `reviewed`.
+**Cause:** Notes that were never added to knowledge (`reviewed`).
 
 **Solution:**
 ```bash
 driftless context list --suggested
-# for each suggested topic worth keeping:
+# for each Note worth keeping, add it to knowledge:
 driftless context update <slug> --what "..." --how "..." --status reviewed
 # delete the rest:
 driftless context delete <slug>

@@ -1,6 +1,6 @@
 ---
 name: driftless
-description: Driftless is the team's shared context layer for AI coding agents in any repo. Topics are durable engineering memory persisted in Cloud — what / how / gotchas / decisions / invariants / checks — anchored to globs that point at real files. The core loop is simple — persist what you learn after each session, pull it back the next time you touch that area. On a PR, the Auditor agent reviews the change against the team's recorded context and comments only when it has a finding — the affected topics' gotchas / decisions / invariants ride along with it; it informs and never blocks. Use BEFORE editing code to pull team context (`context get` / `context search`) — drifted topics carry a freshness badge inline — and AFTER discovering a gotcha or architectural decision to persist it (`context update` / `context add`). Triggers in repos containing `.driftless/` or an `AGENTS.md` mentioning Driftless, and on phrases like "starting work", "how does X work in this repo", "found a gotcha", "about to push", "context get", "context add", "context update", "driftless".
+description: Driftless is the team's shared context layer for AI coding agents in any repo. Topics are durable engineering memory in Cloud — what / how / gotchas / decisions / invariants — anchored to globs over real files. Core loop: persist what you learn after a session, pull it back before you next touch that area. Use BEFORE editing to pull team context (`context get` / `context search`; drifted topics carry a freshness badge), and AFTER discovering a gotcha or decision to persist it (`context update` / `context add`). On a PR the Auditor reviews the change against recorded context and comments only on a finding; it informs, never blocks. Triggers in repos with `.driftless/` or an `AGENTS.md` mentioning Driftless, and on phrases like "starting work", "how does X work in this repo", "found a gotcha", "about to push", "context get", "context add", "driftless".
 license: MIT
 metadata:
   author: Driftless
@@ -86,9 +86,9 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 ### Auto-pull (experimental, Claude Code) — UC1 without remembering
 
-`driftless install-skill` installs a Claude Code **PreToolUse hook** that does UC1 for you: before every `Edit`/`Write`, it injects the team's **reviewed context** for that file automatically. It is **inert until a workspace admin turns it on** at the dashboard → Settings → Automations.
+`driftless install-skill` installs a Claude Code **PreToolUse hook** that does UC1 for you: before every `Edit`/`Write`, it injects the team's **Knowledge** for that file automatically. It is **inert until a workspace admin turns it on** at the dashboard → Settings → Automations.
 
-- Only **reviewed** topics auto-inject (a draft is a hint, not truth — it never auto-injects). This is the payoff of governance: approving a topic is what makes it reach the agent.
+- Only **Knowledge** (`reviewed`) auto-injects (a Note is a hint, not truth — it never auto-injects). This is the payoff of governance: adding a note to knowledge is what makes it reach the agent.
 - Deduped per session (the same area injects once, not on every edit), size-capped (a signal-first brief under a fixed token budget), and a silent no-op when nothing matches.
 - Local-first: context is served from a per-machine topic snapshot synced in the background (delta-sync against Cloud), so an edit never waits on the network — milliseconds, not round-trips. Cloud stays the source of truth.
 - It complements — never replaces — UC1. If you need context for an area you're reasoning about (not editing), still pull it explicitly with `context get`.
@@ -104,16 +104,14 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 **Rule:** If it would have saved you time to know this upfront, save it now. Do NOT keep discoveries in conversation memory only. Cloud is the source of truth.
 
-**The durability litmus — what deserves a topic:** *would a future code change meaningfully contradict this?* If yes, it is durable — the *why* the code can't show: a decision, an invariant, a gotcha that outlives the line that prompted it. If it merely restates what the code already says, or is a transient value that lives in the code, it is NOT a topic. Persist the reasoning, never a paraphrase of the implementation.
-
-**What goes in `decisions` / `gotchas` / `invariants` — and what never does.** These fields hold the durable *why* a future code change would contradict. They are NOT a changelog: status, "done / shipped / TODO", dates, commit or PR references, and roadmap items do not belong here — that is what git history and the PR trail are for. A field that reads like a changelog is the #1 cause of walls; if you catch yourself writing a date or a "now we do X", it belongs in the commit message, not the topic.
+**The durability litmus — what deserves a topic:** *would a future code change meaningfully contradict this?* If yes it's durable — the *why* the code can't show (a decision, an invariant, a gotcha that outlives the line that prompted it). If it merely restates the code or is a transient value, it's NOT a topic. The structured fields (`decisions` / `gotchas` / `invariants`) hold that durable *why* — they are **NOT a changelog**: dates, "done / shipped / TODO", commit/PR refs, and roadmap items belong in git, not the topic. A field that reads like a changelog is the #1 cause of walls.
 
 **Persisting is two moves.** First distill the durable insight (what would you tell the next agent before it touches this area?). Then choose the operation by *intent* — this is the whole game:
 
 - **Adding a genuinely new, standalone fact** → **append** it (`--gotcha` / `--decision` / `--invariant` / `--check`). Atomic and concurrency-safe; don't regenerate a whole topic to add one line.
 - **Correcting, refining, or the field already overlaps what's there** → **rewrite** it: `context get` → fold the new understanding into the old, dropping what's dead → `update --content` (or `--decisions` / `--gotchas` to replace one field). You leave the field coherent, never a pile of stale + new.
 
-Never clobber a `reviewed` topic either way — open a `pr` (the PR carries the rewrite; see Governance below). Append grows a topic; rewrite keeps it true. Together they make a wall impossible: the moment a field overlaps or goes stale, you rewrite instead of stacking another append.
+Never clobber a Knowledge (`reviewed`) topic either way — open a Suggested edit (`pr`) that carries the rewrite (see Governance below). Append grows a topic; rewrite keeps it true. Together they make a wall impossible: the moment a field overlaps or goes stale, you rewrite instead of stacking another append.
 
 **Write the topic as markdown `--content`.** The content body IS the topic: a clear, readable explanation, like a good doc. Use `--tags` (free-form) to label or group topics.
 
@@ -156,7 +154,7 @@ Append grows a topic; **rewrite keeps it true.** Rewrite the moment you spot a *
 - an old claim and its correction both present (contradiction);
 - changelog-style entries — dates, "shipped", commit refs (those belong in git, not the topic).
 
-Recipe: `context get <slug>` (pull fresh — a rewrite is read-modify-write and can lose a concurrent append, so never rewrite from stale memory) → integrate the new understanding into the old, dropping what's dead → `update --content "..."` (or `--decisions` / `--gotchas` to replace a single field). For a `reviewed` topic the same rewrite goes through a topic-PR (`context pr <slug> --open --content @new.md`) — see Governance.
+Recipe: `context get <slug>` (pull fresh — a rewrite is read-modify-write and can lose a concurrent append, so never rewrite from stale memory) → integrate the new understanding into the old, dropping what's dead → `update --content "..."` (or `--decisions` / `--gotchas` to replace a single field). For a Knowledge (`reviewed`) topic the same rewrite goes through a Suggested edit (`context pr <slug> --open --content @new.md`) — see Governance.
 
 ```bash
 driftless context get billing-flow                     # read the current field first
@@ -166,6 +164,8 @@ driftless context update billing-flow \
 ```
 
 The append/replace mechanics of every flag are in `references/topic-anatomy.md`.
+
+**Secret hygiene — never persist a credential.** Topics are team-visible and not encrypted at rest, so a write that carries something secret-shaped (a provider API key, a private-key block, a JWT, a live Driftless key) is **blocked**. The CLI scans locally before sending; the API enforces the same scan as the authoritative gate for every client (MCP/agent, raw API). On a genuine false positive, override with `--allow-secrets` (CLI) / `allow_secrets: true` (MCP). The block masks the match and never echoes the secret (`SECRET_DETECTED`).
 
 ### If no topic covers this area
 
@@ -209,7 +209,7 @@ driftless workspace switch <slug>    # operate on another one (no re-login)
 driftless context move <slug> --to <workspace-slug>   # re-home a topic
 ```
 
-`context move` resets the topic to a draft in its new workspace (a vouch doesn't carry across workspaces) and needs owner/admin in the source. Unlike `context link` (same topic, many repos, one workspace), `move` changes which workspace owns the topic.
+`context move` resets the topic to a Note in its new workspace (Knowledge status doesn't carry across workspaces) and needs owner/admin in the source. Unlike `context link` (same topic, many repos, one workspace), `move` changes which workspace owns the topic.
 
 ### CRITICAL: Naming discipline
 
@@ -232,7 +232,7 @@ If you omit `--title`, it defaults to the slug — which reads badly. **Always s
 
 ### CRITICAL: Anchoring discipline
 
-**An anchor is a contract, not a convenience.** It declares which boundary of the codebase a topic *governs* — and that contract powers everything downstream: drift fires only when the anchored boundary changes, and the PR bot and `context get --files` deliver this topic only to work *inside* that boundary. A loose anchor poisons both — false drift on unrelated changes, and the topic leaking into work it has nothing to say about. The precision of every retrieval and every drift signal is set here, at authoring time.
+**An anchor is a contract, not a convenience.** It declares which boundary a topic *governs* — and that powers everything downstream: drift fires only when the anchored boundary changes, and the PR bot + `context get --files` deliver the topic only to work *inside* it. A loose anchor poisons both — false drift on unrelated changes, and the topic leaking into work it has nothing to say about.
 
 **Anchor to ONE boundary — a single service or module.** That boundary is a subtree in a monorepo (`apps/api/billing/**`) or a whole repo — same idea, two granularities. A concept that genuinely spans two services takes **two anchors**, not one wide glob. Size is the tell:
 
@@ -288,83 +288,51 @@ driftless context update billing-flow \
 
 See `references/topic-anatomy.md` for the full reference on fields, append-vs-replace semantics, and status lifecycle.
 
-### Two ways to link — and both now show in the graph
+### Linking topics — mentions and typed relations
 
-There are two ways to connect topics. They are complementary, not redundant — pick by how strong and typed the connection is:
+Topics aren't islands. Two complementary ways to connect them:
 
-| | `[[slug]]` mention | Typed relation (`--rel`) |
-|---|---|---|
-| How | written inline in any free-text field | `--rel <type>:<slug>` |
-| Strength | weak — a passing reference | strong — a declared edge |
-| Typed? | no | yes (`depends_on`, `blocks`, …) |
-| Endpoint must exist? | no (dead links allowed, rot silently) | yes (both ends) |
-| Use when | a gotcha/decision only makes sense given another topic | the relationship itself is the fact (A depends_on B) |
-
-**Both render in the graph** (`context graph`, the dashboard Topic Graph, and `context relations`): typed relations as solid typed edges, `[[mentions]]` as faint dashed `mention` edges. So a graph authored entirely with mentions is no longer empty — but reach for `--rel` when the *relationship* is what matters.
-
-### Linking topics with `[[slug]]`
-
-Topics are not islands. When the thing you are documenting only makes sense in the context of *another* topic — that's a link, not a copy-paste of duplicated detail.
-
-Inside any free-text field (`--what`, `--how`, `--decisions`, `--gotcha`, `--invariant`, `--ownership`), write `[[other-topic-slug]]`. The API parses every mention and stores the slug in `references_topics`; the other topic then sees this one in its `referenced_by` list.
+- **`[[slug]]` mention** — written inline in any free-text field (`--what`, `--decisions`, `--gotcha`, …). A weak, untyped backlink; dead links allowed (they rot silently). Use when a gotcha/decision only makes sense given another topic.
+- **Typed relation** — `--rel <type>:<slug>`. A strong declared edge (both ends must exist). Types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`, `documents`, `risk_for`. Use when the relationship itself is the fact (A depends_on B).
 
 ```bash
 driftless context update refund-flow \
   --gotcha "Refund webhooks arrive out-of-order — same race as [[stripe-webhook-ingest]]" \
-  --decision "Idempotency-key derived from charge_id, mirroring [[payment-gateway]]"
+  --rel depends_on:payment-gateway
+driftless context relations <slug>     # incoming + outgoing
+driftless context graph <slug>         # local relation graph
 ```
 
-**Link when:** a gotcha only makes sense given another topic; a decision is the consequence of another; two topics describe parts of the same flow.
-
-**Do NOT link when:** the slug only sounds vaguely related; or the target topic doesn't exist yet (dead links never produce a backlink — the trace rots silently).
-
-### Typed semantic relations
-
-Unlike `[[slug]]` mentions (weak backlinks), relations are strong typed edges:
-
-```bash
-driftless context update <slug> --rel depends_on:other-topic
-driftless context relations <slug>     # see incoming and outgoing
-driftless context graph <slug>         # local relation graph around this topic
-```
-
-Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`, `documents`, `risk_for`.
-
-Typed relations draw as **solid** edges in the graph; `[[mentions]]` draw as **dashed** `mention` edges. If a mention captures a real dependency, promote it with `--rel` — that turns a weak dashed link into a strong typed one.
+Both render in the graph (typed = solid edges, `[[mentions]]` = dashed); promote a mention to `--rel` when it captures a real dependency. Full comparison table in `references/topic-anatomy.md`.
 
 ### Governance — everything is one topic that evolves
 
-There is a single primitive — a **topic** — that matures along one trust axis. The names are stages of the *same object*:
+There is a single primitive — a **topic** — that matures along one trust axis: **Note → Knowledge**. A **Note** is a draft (private by default; share it to the workspace and it's **Up for review**). **Knowledge** is the team's source of truth — *a note becomes knowledge once it's merged in*, and only a human can merge (agents write notes; an owner/admin merges). To change existing Knowledge, open a **Suggested edit** — a human merges it.
 
-```text
-Note (draft)  →  Proposal (proposed)  →  Institutional Context (reviewed)
-```
+- **Note** — a draft / private observation (only its creator sees it; excluded from search by default; untouched notes auto-archive ~14d, recoverable). Where you think before sharing. Share it to the workspace and it's **Up for review**.
+- **Knowledge** — the team's source of truth — the notes merged in. A human added it to knowledge, so it joins the team's living, code-anchored **knowledge graph** of the codebase. This is the durable truth you consume (`governance.authoritative: true`).
 
-- **Note** — private scratch (only its creator sees it; excluded from search by default; untouched notes auto-archive ~14d, recoverable). Where you think before sharing.
-- **Proposal** — a Note promoted for human review. Pending a vouch; can be sent back with a reason.
-- **Institutional Context** — the **final evolution**: a human approved it, so it joins the team's living, code-anchored **knowledge graph** of the codebase. This is the durable truth you consume (`governance.authoritative: true`).
+**Treat Knowledge (`reviewed`) as truth; a Note is a hint.** The model is *agents write notes, humans add them to knowledge* — an ownerless agent key can put a note up for review but never merge it in.
 
-**Treat Institutional Context (`reviewed`) as truth; a Note is a hint.** The model is *agents propose, humans approve* — an ownerless agent key can propose but never bless.
-
-**Creation is always a Note (draft)** — for everyone, agent or human, CLI or MCP. Anyone may instead submit a **Proposal** (`--status proposed` on create, or `context propose` later) — proposing is a *request* for review, which is exactly what agents do. But `reviewed` is **never** set at create, by anyone: Institutional Context comes only from `context approve` (a human). No one self-blesses authoritative truth.
+**Creation is always a Note (draft)** — for everyone, agent or human, CLI or MCP. Anyone may instead put a note **Up for review** (`--status proposed` on create, or `context propose` later) — that's a *request* to add it to knowledge, which is exactly what agents do. But `reviewed` is **never** set at create, by anyone: a note becomes Knowledge only through `context approve` (a human merges it in). No one merges their own work into the team's source of truth.
 
 ```bash
-driftless context propose <slug>     # Note → Proposal (submit for review)
-driftless context approve <slug>     # → Institutional Context (needs a human identity)
-driftless context reject <slug> --reason "..."   # → Note, with feedback to the author
+driftless context propose <slug>     # Note → Up for review (request to add to knowledge)
+driftless context approve <slug>     # add to knowledge (merge it in — needs a human identity)
+driftless context reject <slug> --reason "..."   # → back to a Note, with feedback to the author
 driftless context archive <slug>     # retire a topic
 ```
 
-**Don't overwrite an approved topic blindly.** To change canonical truth, open a **topic-PR** — a proposed content change a human reviews and merges:
+**Don't overwrite Knowledge blindly.** To change the team's source of truth, open a **Suggested edit** — a proposed content change a human reviews and merges in:
 
 ```bash
-driftless context pr <slug>                                   # list open proposals
-driftless context pr <slug> --open --summary "why" --content @new.md   # propose a change
-driftless context pr <slug> --merge <id>                      # apply + approve (human)
-driftless context pr <slug> --reject <id>                     # close without applying
+driftless context pr <slug>                                   # list open Suggested edits
+driftless context pr <slug> --open --summary "why" --content @new.md   # open a Suggested edit
+driftless context pr <slug> --merge <id>                      # merge it in (human)
+driftless context pr <slug> --reject <id>                     # close without merging
 ```
 
-As an agent: when you discover something, persist it (UC2) — that lands as a draft. If a topic is already `reviewed` and your finding changes it, open a `pr` instead of clobbering it. `approve`/`merge` require a human identity (an ownerless agent key can propose but not bless).
+As an agent: when you discover something, persist it (UC2) — that lands as a Note. If a topic is already Knowledge (`reviewed`) and your finding changes it, open a Suggested edit instead of clobbering it. `approve`/`merge` require a human identity (an ownerless agent key writes notes but never merges them in).
 
 ---
 
@@ -457,44 +425,7 @@ driftless context update billing \
   --check "Replay tests must pass with duplicate event.id in chaos suite"
 ```
 
-### Example 3 — First-time setup in a fresh repo
-**User says:** "Set up Driftless for this repo."
-
-**Actions:**
-```bash
-driftless login                                       # if not already
-driftless install-skill                               # writes CLAUDE.md, AGENTS.md, .driftless/
-# First topic = something REAL you already know about this repo, anchored narrow:
-driftless context add api-auth --title "Auth" \
-  --what "Every API request is workspace-scoped by a global guard." \
-  --invariant "No route may bypass the workspace guard" \
-  --pattern "src/auth/**"
-# Nothing concrete to record yet? Skip it — persist your first real learning (UC2).
-```
-
-### Example 4 — Pre-commit refresh
-**User says:** "I'm about to push. Anything I should refresh first?"
-
-**Actions:**
-```bash
-driftless context get --diff                          # topics matching local diff — drifted ones show a ⚠ badge
-# If any topic is stale and your change touched it, update before pushing:
-driftless context update <slug> --gotcha "…" --decision "…"
-git push
-```
-
-### Example 5 — Context looks suspicious
-**User says:** "`context get` is returning weird results, can I trust it?"
-
-**Actions:**
-```bash
-driftless context doctor
-# Inspect categories: stale / orphaned / zombie / draft / docs_pending / repo_leak
-# Resolve orphaned, repo_leak, and zombie first — they indicate broken anchors.
-# For zombies: context update <slug> --remove-pattern "<old>" --add-pattern "<new>" — or archive if obsolete.
-```
-
-### Example 6 — A teammate is reviewing your PR
+### Example 3 — A teammate is reviewing your PR
 **Situation:** Your PR touches files anchored to `billing-flow`. The Auditor reviews the change against what the team recorded and, **if it has a finding**, posts ONE comment: the finding plus the recorded gotchas, decisions and invariants for the affected topics.
 
 **What happens:** The reviewer — who isn't running the CLI — sees the signal AND the context together, so they review *with* the team's memory instead of without it. Stale topics are flagged inside the comment. A clean PR gets **no comment at all** — context arrives anchored to a real signal, never as anchor-match spam. If your change altered how the area works, update the topic so the note stays true:
@@ -527,13 +458,9 @@ For the full catalog, see `references/troubleshooting.md`.
 
 ## Performance Notes
 
-- **Quality of a topic matters more than speed.** Narrow anchors, batched updates, real causal `[[links]]`. A noisy topic rots; a precise one compounds.
-- **Trust the pattern validator.** When the CLI says a glob matches 0 real files, do not force it — the topic will be a zombie before it is useful.
-- **Persist after every session.** The loop only works if what you learned goes back to Cloud (UC2). A gotcha you discover but don't write down is lost — don't leave it in conversation memory.
-- **Do NOT split a discovery into N updates.** Every PATCH bumps version and writes a history event. Batch related `--gotcha` / `--decision` / `--add-pattern` into one invocation.
-- **Rewrite to consolidate; append to add.** A field that overlaps or contradicts itself is a wall — replace it coherently (`context get` → integrate → `update --content`/`--decisions`), don't stack another append. (Batching still applies *within* an append.)
-- **Do NOT create catch-all topics** (`--pattern "src/**"`). One topic per concept; a whole domain is a hub with per-service spokes, not one wide glob.
-- **The PR comment is the Auditor's finding plus the team's recorded context — signal-only.** A clean PR gets no comment. It never scores coverage or assigns homework; gap-finding lives in the coverage map (`context coverage` on the MCP, or the dashboard).
+- **Quality over speed.** Narrow anchors, batched updates (one PATCH, not N), real causal `[[links]]` — a noisy topic rots, a precise one compounds.
+- **Persist after every session** (UC2) and **trust the pattern validator** — a gotcha left in conversation memory is lost; a 0-match glob is a zombie on day one.
+- **Append to add, rewrite to consolidate; never a catch-all `src/**`** — a domain is a hub with per-service spokes, not one wide glob.
 
 ---
 
@@ -548,4 +475,4 @@ For the full catalog, see `references/troubleshooting.md`.
 Common flags available on most context commands:
 - `--dry-run` — preview changes without writing
 - `--json` — machine-readable output
-- `--status proposed` — submit a new topic as a Proposal (omit → born a Note/draft). `reviewed` is not settable at create; it comes only from `context approve` (human).
+- `--status proposed` — put a new topic **Up for review** (omit → born a Note/draft). `reviewed` is not settable at create; a note becomes Knowledge only via `context approve` (a human merges it in).
