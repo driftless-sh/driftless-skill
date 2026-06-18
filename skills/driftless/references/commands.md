@@ -121,7 +121,7 @@ driftless context add "<slug>" \
   --content "# Module Name\n\n## What\nWhat this module does\n\n## How\nHow it is implemented" \
   --pattern "src/auth/**" \
   --pattern "src/users/**" \
-  --tags auth,security \
+  --tags security \
   --rel depends_on:token-refresh
 ```
 

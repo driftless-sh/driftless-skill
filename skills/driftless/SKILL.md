@@ -4,7 +4,7 @@ description: Driftless is the team's shared context layer for AI coding agents i
 license: MIT
 metadata:
   author: Driftless
-  version: 3.11.1
+  version: 3.12.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
@@ -113,11 +113,13 @@ Drift is **scoped to tracked branches**: a topic only goes stale when its covere
 
 Never clobber a Knowledge (`reviewed`) topic either way — open a Suggested edit (`pr`) that carries the rewrite (see Governance below). Append grows a topic; rewrite keeps it true. Together they make a wall impossible: the moment a field overlaps or goes stale, you rewrite instead of stacking another append.
 
-**Write the topic as markdown `--content`.** The content body IS the topic: a clear, readable explanation, like a good doc. Use `--tags` (free-form) to label or group topics.
+**Write the topic as markdown `--content`.** The content body IS the topic: a clear, readable explanation, like a good doc. `--tags` are **optional** — see *Tagging discipline* below; most topics need zero or one.
 
 Keep `--what` to one tight sentence (the summary shown in lists) and put the real explanation in `--content`. `--how` is a SHORT (1–3 sentence) note on the approach or mechanism — NOT a place to paste a document; the long-form doc goes in `--content`, where it renders as markdown (headings, tables, code). A doc dumped into `--how` renders as a wall of literal markdown, and `context doctor` flags it as `mis-shaped how`.
 
 The structured fields (`--gotcha`, `--decision`, `--invariant`, `--check`) are **optional highlights** — add one only when you want that specific thing surfaced to the machine (the PR bot, a future agent's brief) *on top of* the content. **Never invent an empty gotcha/decision just because the flag exists.** Anchors (`--pattern`) are a separate axis — they're the file-matching, and they're always worth setting.
+
+**Tagging discipline — tags are an OPTIONAL, transversal, controlled vocabulary.** A tag is not a topic's home and not a paraphrase of its subject — it's a *cross-cut* that groups topics that share a property *across* different subjects (`security`, `performance`, `decision`, `tech-debt`). Before you coin one, run `driftless tags` and **reuse** an existing tag; create a new one only when a genuine cross-cut is missing from the registry. **Most topics need zero or one tag.** Do NOT mint a tag for the topic's subject (`billing`, `auth`, `mcp`, `dashboard`…) — that just restates what the topic is already about, and minting one per topic is exactly how a registry rots into hundreds of single-use labels nobody can navigate. The CLI auto-registers an unknown tag and never errors, so nothing stops you at write time — the discipline is yours to hold.
 
 ### If a topic exists for the area
 
@@ -131,8 +133,7 @@ driftless context update billing-flow \
   --invariant "Webhook handlers must be idempotent — never assume single delivery" \
   --check "Run integration suite under chaos-mode replay before merging" \
   --add-pattern "src/billing/webhooks/**" \
-  --rel depends_on:stripe-webhook-ingest \
-  --tags billing,webhooks
+  --rel depends_on:stripe-webhook-ingest
 ```
 
 Append flags (`--gotcha`, `--decision`, `--invariant`, `--check`) are repeatable and additive — every value lands atomically under a row lock, so concurrent agents don't lose appends.
@@ -169,14 +170,13 @@ The append/replace mechanics of every flag are in `references/topic-anatomy.md`.
 
 ### If no topic covers this area
 
-Write the `--content` body yourself. There are three starter templates in `.driftless/assets/templates/` (`reference`, `decision`, `runbook`) — use one as scaffolding if it helps, but the content is what matters, not the form. Use `--tags` to label or group the topic. Every topic lives in the workspace and is visible to the whole team (need isolation? use a separate workspace).
+Write the `--content` body yourself. There are three starter templates in `.driftless/assets/templates/` (`reference`, `decision`, `runbook`) — use one as scaffolding if it helps, but the content is what matters, not the form. Add a `--tags` cross-cut only if one fits (*Tagging discipline* above) — most new topics need none. Every topic lives in the workspace and is visible to the whole team (need isolation? use a separate workspace).
 
 ```bash
 # Engineering knowledge — code, systems, integrations, domain maps
 driftless context add billing-flow \
   --content @.driftless/assets/templates/reference.md \
-  --pattern "src/billing/**" --pattern "src/checkout/**" \
-  --tags billing
+  --pattern "src/billing/**" --pattern "src/checkout/**"
 
 # Architecture/product decision (ADR) — context/options/decision/consequences
 driftless context add async-webhook-handler \
@@ -187,7 +187,7 @@ driftless context add stripe-webhook-replay \
   --content @.driftless/assets/templates/runbook.md
 ```
 
-The `--content` body is the topic. Use `--tags` to label or group a topic (e.g. `--tags decision`).
+The `--content` body is the topic. A `--tags` cross-cut is optional and should reuse the registry (*Tagging discipline* above) — e.g. `--tags decision` only if the topic shares that cut with others.
 
 ### Cross-repo
 

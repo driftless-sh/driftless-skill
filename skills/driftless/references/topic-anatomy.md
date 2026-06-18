@@ -17,7 +17,7 @@ highlights** layered on top:
   want that specific thing surfaced to the machine (the PR bot, a future agent's
   brief) *on top of* the content. Never invent an empty gotcha or decision just
   because the flag exists.
-- `--tags` — free-form labels to group and filter topics.
+- `--tags` — OPTIONAL transversal cross-cuts (`security`, `performance`, `decision`), not the topic's subject. Reuse the registry (`driftless tags`); most topics need zero or one. Don't mint one per subject.
 - `--pattern` — anchors are a separate axis (file matching); always worth setting.
 
 Three starter templates ship at `.driftless/assets/templates/` — `reference.md`,
@@ -30,7 +30,8 @@ Agent prompt guidance:
 Write every topic as markdown --content. The content body is the topic.
 
 Use --what as a one-sentence summary.
-Use --tags to label and group topics.
+Use --tags sparingly — optional transversal cross-cuts only (reuse existing
+ones; most topics need zero or one). Never a tag per subject.
 Add --gotcha / --decision / --invariant / --check only when you want that
 specific thing surfaced on top of the content — never to fill a form.
 ```
@@ -51,7 +52,7 @@ specific thing surfaced on top of the content — never to fill a form.
 - **`decisions[]`** — list of decisions with reasons. Appendable.
 - **`invariants[]`** — list of must-be-true statements. Appendable.
 - **`required_checks[]`** — list of tests/lints/validations that must pass. Appendable.
-- **`tags[]`** — comma-separated labels for dashboard filtering.
+- **`tags[]`** — optional transversal cross-cuts for filtering; reuse the registry, most topics need zero or one (see *Tagging discipline* in SKILL.md).
 
 ### System-managed (don't write directly)
 
