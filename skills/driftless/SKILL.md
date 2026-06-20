@@ -132,6 +132,45 @@ driftless doctor               # verify auth/connectivity/repo link
 
 Then just work and leave clean notes. Don't seed a generic placeholder topic — it documents nothing and rots. Your first note should be about something REAL you'd tell a new teammate.
 
+## Working through a project — the agent loop
+
+A project is a board of cards. Each card is one unit of work with an optional `acceptance` criterion and `validate` command. The loop has four steps — repeat until `project_done` is true:
+
+```bash
+# 1. Get the next actionable card + its context bundle (one call, no extra round-trip)
+driftless project card next <project-id>
+# MCP: driftless_project_card action:'next' project_id:'<id>'
+# Returns: { card, context_bundle, project_done }
+```
+
+```bash
+# 2. Work the card. Load the context_bundle first — it carries the team's recorded
+#    memory for that card's area so you don't re-derive what the team already knows.
+```
+
+```bash
+# 3. Validate — run the card's `validate` command if present. Non-zero = stop-and-fix.
+#    Check `acceptance` to confirm the outcome matches the definition of done.
+```
+
+```bash
+# 4. Write-back and mark done
+driftless context update <slug> --gotcha "..."   # persist anything durable you learned
+driftless project card status <project-id> <card-id> done
+# MCP: driftless_project_card action:'set' card_id:'<id>' status:'done'
+#      driftless_project_card action:'next' project_id:'<id>'  ← next iteration
+```
+
+**Dep-gating:** a `todo` card with unmet deps never appears in `next` — it only becomes "ready" once all cards in its `depends_on` list are `done`. When no cards are ready and none are in-flight, `project_done` is true.
+
+**Stop-and-fix:** if `validate` exits non-zero, do NOT mark the card done. Fix the failure, then re-validate. The loop halts here until the card is genuinely done.
+
+**Blocked:** if you cannot proceed without a human decision, set the card to `blocked`:
+```bash
+driftless project card status <project-id> <card-id> blocked
+# MCP: driftless_project_card action:'set' card_id:'<id>' status:'blocked'
+```
+
 ## Pre-commit / pre-push
 
 ```bash

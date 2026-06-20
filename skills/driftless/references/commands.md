@@ -364,6 +364,52 @@ Creates or appends to `AGENTS.md` at the repo root.
 
 ---
 
+### `driftless project`
+
+Projects are boards of cards — shared execution environments for humans and agents.
+
+```bash
+# Projects
+driftless project add "<title>"
+driftless project list [--status active|done|archived]
+driftless project get <id>
+driftless project update <id> [--title "..."] [--status active|done|archived]
+
+# Cards — list
+driftless project cards <project-id> [--status todo,in_progress,...] [--limit n]
+
+# Cards — agent loop tick (one call per iteration)
+driftless project card next <project-id>
+# Returns: next actionable card + context_bundle + project_done flag
+
+# Cards — create
+driftless project card add <project-id> \
+  --title "..." \
+  [--description "..."] \
+  [--acceptance "what done means"] \
+  [--validate "pnpm test billing"] \
+  [--dep <card-id>]              # repeatable — sets depends_on
+  [--owner <clerk-id>]
+
+# Cards — read / update / delete
+driftless project card get <project-id> <card-id>
+driftless project card status <project-id> <card-id> <status>
+driftless project card move <project-id> <card-id> <to-project-id>
+driftless project card rm <project-id> <card-id>
+```
+
+**Card fields:**
+- `acceptance` — what "done" means (free text). Agent checks this before marking done.
+- `validate` — shell command to verify the card. Non-zero exit = stop-and-fix.
+- `depends_on` — list of card UUIDs. A `todo` card is "ready" only when all deps are `done`.
+- `ready` — computed field (true when todo + all deps done). Never set manually.
+
+**Card statuses:** `todo` · `in_progress` · `blocked` · `review` · `done`
+
+**Agent loop:** call `next` → work → validate → persist → mark done → call `next`. Repeat until `project_done: true`. See "Working through a project" in SKILL.md.
+
+---
+
 ## Environment variables
 
 | Variable | Default | Description |
