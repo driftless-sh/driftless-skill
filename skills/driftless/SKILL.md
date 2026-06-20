@@ -163,6 +163,8 @@ driftless project card status <project-id> <card-id> done
 
 **Dep-gating:** a `todo` card with unmet deps never appears in `next` — it only becomes "ready" once all cards in its `depends_on` list are `done`. When no cards are ready and none are in-flight, `project_done` is true.
 
+**Mid-loop write-back:** a gotcha you hit *while* working a card → `driftless note add --content "..." --project <pid> --card <card-id>`. It attaches to that card, rides its `next` context_bundle, and is synthesized into a draft topic when the project closes — so a learning from card 3 is never lost waiting for the end.
+
 **Stop-and-fix:** if `validate` exits non-zero, do NOT mark the card done. Fix the failure, then re-validate. The loop halts here until the card is genuinely done.
 
 **Blocked:** if you cannot proceed without a human decision, set the card to `blocked`:
