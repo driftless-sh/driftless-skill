@@ -1,17 +1,23 @@
 ---
 name: driftless
-description: Driftless is your team's shared memory in any repo — durable, area-filed, code-anchored notes you READ before working and WRITE as you learn. It is a vault: most notes stay notes, a few become team Knowledge. Pull context before editing a module (`context get` / `context search` / `--files`; drifted topics show a freshness badge); leave one clean note after you learn a gotcha, decision, or invariant (`context add` / `context update`). Quality is enforced at write time — one concept per note, filed in an area, narrowly anchored, the durable why (never a changelog). Use in repos with `.driftless/` or an AGENTS.md mentioning Driftless, and on phrases like "what do we know about X", "save this", "found a gotcha", "starting work", "about to push", "context get", "driftless".
+description: Driftless is the workspace where you and your team work **with** your agents — and the work itself becomes the team's living, governed context that doesn't go stale. Two planes on one spine: **Knowledge** (Topics — the durable *why*; a Note is a hint, a human merges it into Knowledge; code-anchored, drift-aware) and **Operational** (Collections/Records — the CRMs, trackers and pipelines your agent runs; Comments annotate either). READ the team's context before you touch an area; WRITE one clean note after you learn a durable gotcha/decision/invariant. It's *context*, not "memory" (the invisible per-agent kind) — shared, anchored, vouched, aware of when it drifted. Quality is enforced at write time — one concept per note, filed in an area, narrowly anchored, the durable why (never a changelog). Use in repos with `.driftless/` or an AGENTS.md mentioning Driftless, and on phrases like "what do we know about X", "save this", "found a gotcha", "starting work", "about to push", "context get", "driftless".
 license: MIT
 metadata:
   author: Driftless
-  version: 4.0.0
+  version: 4.1.0
   homepage: https://driftless.icu
   cli: "@driftless-sh/cli"
 ---
 
 # Driftless
 
-Driftless is the team's shared memory in Cloud. You **read** it before you work and **write** clean notes into it as you learn. You don't own topics — the team does; Cloud is the source of truth.
+Driftless is the workspace where you and your team work **with** your agents — and the work becomes the team's living context: **anchored** (it knows which code/system it governs), **governed** (agents propose, humans merge), and **drift-aware** (it knows when it stopped being true). It maintains itself as a by-product of working, not like a wiki you tend.
+
+Two planes on one spine:
+- **Knowledge — Topics**: the durable *why* (decisions, gotchas, invariants). A **Note** is a hint; a human merges it into **Knowledge** (the team's source of truth).
+- **Operational — Collections & Records**: the CRMs, trackers, pipelines and analyses your agent runs. **Comments** annotate either.
+
+You **read** the team's context before you touch an area, and **write** one clean note after you learn. Cloud is the source of truth — the team owns it, not you.
 
 It is a **vault**, not a filing ceremony. Most of what you write stays a Note — that's healthy and expected. A few notes become **Knowledge** (a human merges them in) — the cross-cutting truths the whole team relies on. There is no approval gate you must clear; **a note is first-class and the agent reads it.** Because there's no gate, *quality is enforced at write time* — by the six rules below. That discipline is the whole product: a clean vault is useful, a messy one rots.
 
@@ -181,6 +187,20 @@ driftless context get --diff --mark    # …and flag them drifted from local git
 ```
 
 If a topic your change touched is stale, refresh it before pushing. `--mark` is opt-in — plain `--diff` only displays.
+
+## Comments — annotate without editing
+
+A **comment** is a thin annotation that points AT a spine object (a topic/record) or a project card — never a topic itself (no version, drift, or governance; its text stays out of the topic body, rule F). Author is human or agent. It resolves into an edit: `open → resolved → wont_fix`. The killer placement is the **Note→Knowledge gate** — leave precise, field-level feedback at review time instead of a coarse approve/reject.
+
+```bash
+driftless context comment add <topic-slug> --body "…" [--field decisions]   # or --card/--record <uuid>
+driftless context comment list <topic-slug> [--status open]                 # the reviewer's view
+driftless context comment resolve <id> [--wont-fix]   ·   reopen <id>
+```
+
+## Collections — the operational substrate
+
+A **Collection** is a configured table (`record_schema` + `views` + lifecycle + `criterion_rel_slugs`); a **Record** is one typed row. Each use case — CRM, bug tracker, support tickets, content calendar — is a *configured Collection, not new code*. Three archetypes: **pipeline** (records flow by status), **analysis** (record anchored to a drifting source), **content** (a record with a draft→published lifecycle). A record reads the team's Knowledge via `criterion_rel_slugs` before the work happens (the seam). Collections are a **separate primitive from Projects** (the agent loop) — they coexist. Full surface in `references/commands.md` (`driftless collection …`).
 
 ## Health
 

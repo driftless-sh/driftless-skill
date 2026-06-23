@@ -289,6 +289,27 @@ driftless context share <slug>            # public read-only link (driftless.icu
 driftless context share <slug> --revoke   # turn the link off
 ```
 
+#### Comment on a topic, a record, or a card
+
+A comment is a thin annotation that points AT a spine object (a topic/record) or a project card — **not** a topic. It carries no governance of its own and resolves into an edit (`open → resolved → wont_fix`). Author is you (human) or your agent. The killer placement is the Note→Knowledge gate: leave fine-grained, field-level feedback at review time instead of a coarse approve/reject.
+
+```bash
+# Comment on a topic (by slug); --field scopes it to one field (e.g. decisions)
+driftless context comment add billing-flow --body "This decision contradicts the refund invariant" --field decisions
+
+# Comment on a project card or a record (by uuid)
+driftless context comment add --card <card-uuid> --body "Blocked on the webhook fix"
+driftless context comment add --record <record-uuid> --body "Duplicate of the Globex lead"
+
+# List a topic's comments at review time (server-side filtered by slug)
+driftless context comment list billing-flow --status open
+
+# Resolve when an edit addresses it (or won't-fix / reopen)
+driftless context comment resolve <comment-id>
+driftless context comment resolve <comment-id> --wont-fix
+driftless context comment reopen  <comment-id>
+```
+
 ---
 
 ### `driftless workspace`
@@ -407,6 +428,36 @@ driftless project card rm <project-id> <card-id>
 **Card statuses:** `todo` · `in_progress` · `blocked` · `review` · `done`
 
 **Agent loop:** call `next` → work → validate → persist → mark done → call `next`. Repeat until `project_done: true`. See "Working through a project" in SKILL.md.
+
+---
+
+### `driftless collection`
+
+The object-native operational substrate. A **Collection** is a configured table (`record_schema` + `views` + lifecycle + `criterion_rel_slugs`); a **Record** is one typed row in it. Each use case — a CRM, a bug tracker, support tickets, a content calendar — is a *configured Collection*, not new code. There are three archetypes: **pipeline** (records flow by status), **analysis** (record anchored to a drifting source), **content** (a record with a draft→published lifecycle).
+
+> Collections are a **separate primitive from `project`** (the agent execution loop). They coexist — a Collection is operational data a human runs augmented by AI; a Project is where an agent works a loop.
+
+```bash
+# Create a Collection. record_schema/views accept inline JSON or @file.
+driftless collection add "Sales Pipeline" --archetype pipeline \
+  --schema '[{"key":"company","type":"text"},{"key":"mrr","type":"currency"},{"key":"stage","type":"status","stages":["new","qualified","won","lost"]}]' \
+  --views  '[{"type":"board","group_by":"stage"}]' \
+  --criterion "how-we-sell,icp"        # Knowledge topics the work reads (the seam, coming down)
+
+driftless collection list [--status active|archived]
+driftless collection get <id>
+driftless collection update <id> [--name "..."] [--status active|archived] [--schema @file] [--views @file]
+
+# Records — typed rows. status is validated against the Collection's stages.
+driftless collection record add <collection-id> --fields '{"company":"Acme","mrr":500}' --status new
+driftless collection records <collection-id> [--status <stage>]
+driftless collection record get    <collection-id> <record-id>
+driftless collection record update <collection-id> <record-id> [--fields '<json>'|@file] [--status <stage>]
+```
+
+**Field types (`record_schema`):** `text · long_text · number · currency · date · datetime · select · multi_select · status(stages[]) · relation · user · url · email · phone · file · anchor_ref · ai_field`. A `status` field's `stages[]` defines the record lifecycle — a record's `status` must be one of them.
+
+**View types (`views`):** `board · table · list · calendar · gallery` (with `group_by`, `filter`, `sort`, `visible_fields`).
 
 ---
 
