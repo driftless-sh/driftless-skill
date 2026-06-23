@@ -78,6 +78,15 @@ driftless tags rm <name>                        # delete + detach from every top
 
 Tag names normalize on every surface (lowercase, spaces→dashes), so `Billing` and `billing ` are the same tag. Attaching a tag that was never pre-created auto-registers it — the registry is curation, never a gate.
 
+#### Areas — the topic's domain home
+
+```bash
+driftless area list                              # list areas (id, name, topic count) — run this to find the right --area
+driftless area add "<name>" [--description "..."] # create a domain
+```
+
+Every topic files into exactly one **area** (rule B) — its ontological home (e.g. `Billing`, `Platform & Infra`), distinct from transversal **tags**. File a topic with `context add/update --area <name|id>` (the name from `area list`, or its id). `area list` is the canonical way to discover area names — `context list` carries the `area_id` but not the name, so resolve it here, not by guessing. Areas are id-keyed: renaming one never re-files its topics.
+
 #### Get specific context
 
 ```bash

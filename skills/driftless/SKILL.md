@@ -31,7 +31,7 @@ It is a **vault**, not a filing ceremony. Most of what you write stays a Note �
 These are not advice — they are the gate. Hold them on every `add` / `update` (the CLI and MCP nudge you, but the discipline is yours).
 
 - **A. One concept per note.** Atomic. If you're tempted to cover two things, write two notes.
-- **B. Always file into an area** (`--area`). Pick the domain before you write; if none fits, create one. Never leave a note in *Unassigned* — that's where vaults rot.
+- **B. Always file into an area** (`--area <name|id>`). Run `driftless area list` to see the domains (it's the only place the area *name* is shown — don't guess); pick one before you write, or `driftless area add "<name>"` if none fits. Never leave a note in *Unassigned* — that's where vaults rot.
 - **C. Anchor narrow** (`--pattern`, ~5–40 files, never `src/**`). For non-code memory, anchor the doc/api/system it's about. A loose anchor causes false drift and leaks the note into work it has nothing to say about.
 - **D. Trust is a signal, not a gate.** Knowledge (`reviewed`) = team truth; a Note = a hint. Both reach the agent, weighted. Write to leave a *good note*, not to get something approved.
 - **E. Rewrite to consolidate; append to add.** Adding a new standalone fact → append. Correcting or overlapping what's there → rewrite the field coherently. Never stack a wall.
