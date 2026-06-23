@@ -1,0 +1,11 @@
+{
+  "name": "driftless",
+  "description": "Anchored, drift-aware, human-gated context — agents propose, humans merge.",
+  "version": "4.1.0",
+  "homepage": "https://driftless.icu",
+  "license": "MIT",
+  "author": {
+    "name": "Driftless",
+    "email": "support@driftless.icu"
+  }
+}

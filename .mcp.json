@@ -1,0 +1,6 @@
+{
+  "driftless": {
+    "type": "http",
+    "url": "https://api.driftless.icu/mcp"
+  }
+}
