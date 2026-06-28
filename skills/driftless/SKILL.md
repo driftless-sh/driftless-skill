@@ -1,6 +1,6 @@
 ---
 name: driftless
-description: Driftless is the workspace where you and your team work **with** your agents — and the work itself becomes the team's living, governed context that doesn't go stale. Two planes on one spine: **Knowledge** (Topics — the durable *why*; a Note is a hint, a human merges it into Knowledge; code-anchored, drift-aware) and **Operational** (Collections/Records — the CRMs, trackers and pipelines your agent runs; Comments annotate either). READ the team's context before you touch an area; WRITE one clean note after you learn a durable gotcha/decision/invariant. It's *context*, not "memory" (the invisible per-agent kind) — shared, anchored, vouched, aware of when it drifted. Quality is enforced at write time — one concept per note, filed in an area, narrowly anchored, the durable why (never a changelog). Use in repos with `.driftless/` or an AGENTS.md mentioning Driftless, and on phrases like "what do we know about X", "save this", "found a gotcha", "starting work", "about to push", "context get", "driftless".
+description: Driftless is the workspace where you and your team work **with** your agents — and the work itself becomes the team's living, governed context that doesn't go stale. Two planes on one spine: **Knowledge** (Topics — the durable *why*; a Note is a hint until it's merged into Knowledge — an owner/admin act you run only when one explicitly asks; code-anchored, drift-aware) and **Operational** (Collections/Records — the CRMs, trackers and pipelines your agent runs; Comments annotate either). READ the team's context before you touch an area; WRITE one clean note after you learn a durable gotcha/decision/invariant. It's *context*, not "memory" (the invisible per-agent kind) — shared, anchored, vouched, aware of when it drifted. Quality is enforced at write time — one concept per note, filed in an area, narrowly anchored, the durable why (never a changelog). Use in repos with `.driftless/` or an AGENTS.md mentioning Driftless, and on phrases like "what do we know about X", "save this", "found a gotcha", "starting work", "about to push", "context get", "driftless".
 license: MIT
 metadata:
   author: Driftless
@@ -11,15 +11,15 @@ metadata:
 
 # Driftless
 
-Driftless is the workspace where you and your team work **with** your agents — and the work becomes the team's living context: **anchored** (it knows which code/system it governs), **governed** (agents propose, humans merge), and **drift-aware** (it knows when it stopped being true). It maintains itself as a by-product of working, not like a wiki you tend.
+Driftless is the workspace where you and your team work **with** your agents — and the work becomes the team's living context: **anchored** (it knows which code/system it governs), **governed** (agents propose; merging into Knowledge is an owner/admin act), and **drift-aware** (it knows when it stopped being true). It maintains itself as a by-product of working, not like a wiki you tend.
 
 Two planes on one spine:
-- **Knowledge — Topics**: the durable *why* (decisions, gotchas, invariants). A **Note** is a hint; a human merges it into **Knowledge** (the team's source of truth).
+- **Knowledge — Topics**: the durable *why* (decisions, gotchas, invariants). A **Note** is a hint; merging it into **Knowledge** (the team's source of truth) is an owner/admin act — you can run the merge yourself, but only when an owner/admin explicitly asks.
 - **Operational — Collections & Records**: the CRMs, trackers, pipelines and analyses your agent runs. **Comments** annotate either.
 
 You **read** the team's context before you touch an area, and **write** one clean note after you learn. Cloud is the source of truth — the team owns it, not you.
 
-It is a **vault**, not a filing ceremony. Most of what you write stays a Note — that's healthy and expected. A few notes become **Knowledge** (a human merges them in) — the cross-cutting truths the whole team relies on. There is no approval gate you must clear; **a note is first-class and the agent reads it.** Because there's no gate, *quality is enforced at write time* — by the six rules below. That discipline is the whole product: a clean vault is useful, a messy one rots.
+It is a **vault**, not a filing ceremony. Most of what you write stays a Note — that's healthy and expected. A few notes become **Knowledge** (merged in on an owner/admin's say-so) — the cross-cutting truths the whole team relies on. There is no approval gate you must clear; **a note is first-class and the agent reads it.** Because there's no gate, *quality is enforced at write time* — by the six rules below. That discipline is the whole product: a clean vault is useful, a messy one rots.
 
 ## The two moves
 
@@ -118,15 +118,15 @@ A tag is a cross-cut that groups topics across *different* subjects (`security`,
 One primitive, one trust axis: **Note → Knowledge**.
 
 - **Note** — what you write. Private by default; share it to the workspace and it's *Up for review*. Untouched notes auto-archive ~14d (recoverable). The agent reads notes as **hints**.
-- **Knowledge** (`reviewed`) — the team's source of truth, *the notes merged in*. A human merges; an agent can put a note up for review but never merges its own. The agent reads Knowledge as **truth**.
+- **Knowledge** (`reviewed`) — the team's source of truth, *the notes merged in*. Merging is an **owner/admin** act: you can run the merge (`context approve`) yourself, but **only when an owner/admin explicitly asks** — never on your own initiative, and never if you lack that authority (an ownerless key or a non-owner is refused). The agent reads Knowledge as **truth**.
 
 ```bash
 driftless context propose <slug>     # Note → Up for review
-driftless context approve <slug>     # merge into Knowledge (human only)
+driftless context approve <slug>     # merge into Knowledge — owner/admin only; run it only when explicitly asked
 driftless context pr <slug> --open --summary "why" --content @new.md   # Suggested edit to existing Knowledge
 ```
 
-You don't need to push notes toward Knowledge — that promotion is for the few cross-cutting truths the team relies on. Just leave clean notes (the six rules). To change existing Knowledge, open a Suggested edit — never clobber it.
+You don't need to push notes toward Knowledge — that promotion is for the few cross-cutting truths the team relies on. Just leave clean notes (the six rules). Don't merge unprompted: propose, and merge only when an owner/admin tells you to. To change existing Knowledge, open a Suggested edit — never clobber it.
 
 ## Setup (first time)
 
@@ -214,4 +214,4 @@ A **Collection** is a configured table (`record_schema` + `views` + lifecycle + 
 - `references/cloud.md` — Cloud data model
 - `references/troubleshooting.md` — error / cause / solution catalog
 
-Common flags: `--dry-run` (preview), `--json` (machine output), `--status proposed` (born Up for review; `reviewed` is never set at create — a human merges).
+Common flags: `--dry-run` (preview), `--json` (machine output), `--status proposed` (born Up for review; `reviewed` is never set at create — it's reached only via `context approve`, an owner/admin act).

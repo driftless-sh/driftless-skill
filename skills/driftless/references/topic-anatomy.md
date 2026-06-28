@@ -240,30 +240,30 @@ Relation types: `relates_to`, `depends_on`, `supersedes`, `blocks`, `implements`
 
 ## Status lifecycle — governance
 
-A topic matures along one trust axis: **Note → Knowledge**. A topic is **authoritative only once it's been added to knowledge**. Under the hood the status enum is **`draft → proposed → reviewed → archived`**.
+A topic matures along one trust axis: **Note → Knowledge**. A topic is **authoritative only once an owner/admin has added it to knowledge**. Under the hood the status enum is **`draft → proposed → reviewed → archived`**.
 
 | Status | Label | Meaning |
 |---|---|---|
 | `draft` | **Note** | A draft / private observation. `--suggest`-generated topics start here. **Agents must not treat as authoritative** — it's a hint. |
-| `proposed` | **Up for review** | Put up for human review — a request to add it to knowledge, awaiting a human merge. |
-| `reviewed` | **Knowledge** | The team's source of truth — a note merged in. A human added it to knowledge; the read response carries `governance.authoritative: true` + `approved_by` / `approved_at`. The agent treats this as truth. |
+| `proposed` | **Up for review** | Put up for review — a request to add it to knowledge, awaiting a merge by an owner/admin. |
+| `reviewed` | **Knowledge** | The team's source of truth — a note merged in. An owner/admin's authority added it to knowledge; the read response carries `governance.authoritative: true` + `approved_by` / `approved_at` + `approved_via` (`human` if a person merged it, `agent` if an agent ran the merge on an owner/admin's request). The agent treats this as truth. |
 | `archived` | — | Retired. Hidden from default `context list`. |
 | `orphaned` | — | Code-driven (its repo was deleted) — orthogonal to the governance states. |
 
-The model is **agents write notes, humans add them to knowledge** — `approve`/`reject`/`merge` require a human identity (an ownerless agent key puts a note up for review but never merges it in):
+The model is **agents propose; merging into Knowledge is an owner/admin act** — `approve`/`reject`/`merge` require owner/admin authority. You can run the merge yourself, but **only when an owner/admin explicitly asks**; an ownerless key or a non-owner puts a note up for review but is refused the merge:
 
 ```bash
 driftless context propose <slug>     # Note → Up for review (draft → proposed)
-driftless context approve <slug>     # add to knowledge — merge it in (→ reviewed, authoritative), seals approved_by
+driftless context approve <slug>     # add to knowledge — merge it in (→ reviewed, authoritative); owner/admin only, only when asked
 driftless context reject <slug>      # back to a Note (proposed → draft)
 driftless context archive <slug>     # → archived
 ```
 
-To change a topic that's already Knowledge (`reviewed`), **don't overwrite it — open a Suggested edit** (`driftless context pr <slug> --open ...`); a human merges it in (applies the change + re-approves). See `references/commands.md`.
+To change a topic that's already Knowledge (`reviewed`), **don't overwrite it — open a Suggested edit** (`driftless context pr <slug> --open ...`); an owner/admin merges it in (applies the change + re-approves). See `references/commands.md`.
 
 ## Visibility
 
-Every topic lives in the **workspace** and is visible to all its members. The one exception is a **private Note** (`status=draft` + `is_private`): visible only to its creator until they put it up for review or clear the private flag. Need true isolation between groups? use a separate workspace. (Merging a note into Knowledge is a workspace **role** — owner/admin; members put notes up for review.)
+Every topic lives in the **workspace** and is visible to all its members. The one exception is a **private Note** (`status=draft` + `is_private`): visible only to its creator until they put it up for review or clear the private flag. Need true isolation between groups? use a separate workspace. (Merging a note into Knowledge is a workspace **role** — owner/admin; members put notes up for review. An agent can run the merge on an owner/admin's behalf, but never on its own initiative.)
 
 ## Topic content body
 

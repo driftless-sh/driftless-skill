@@ -271,25 +271,25 @@ A topic lives in exactly one workspace. `move` re-homes it and **resets it to a 
 
 #### Governance — a topic is authoritative only once it's been added to knowledge
 
-A topic matures along one trust axis: **Note → Knowledge** (status enum: `draft → proposed → reviewed → archived`). A **Note** is a draft (private by default; share it to the workspace and it's **Up for review**). **Knowledge** (`reviewed`) is the team's source of truth — *a note becomes knowledge once it's merged in* — and the read response carries `governance.authoritative: true`. Treat Knowledge as truth, a Note (`draft`/`proposed`) as a hint. The model is *agents write notes, humans add them to knowledge*.
+A topic matures along one trust axis: **Note → Knowledge** (status enum: `draft → proposed → reviewed → archived`). A **Note** is a draft (private by default; share it to the workspace and it's **Up for review**). **Knowledge** (`reviewed`) is the team's source of truth — *a note becomes knowledge once it's merged in* — and the read response carries `governance.authoritative: true`. Treat Knowledge as truth, a Note (`draft`/`proposed`) as a hint. The model is *agents propose; merging into Knowledge is an owner/admin act* — you can run the merge, but only when an owner/admin explicitly asks.
 
 ```bash
 driftless context propose <slug>     # Note → Up for review (request to add to knowledge)
-driftless context approve <slug>     # add to knowledge — merge it in (needs a human identity)
+driftless context approve <slug>     # add to knowledge — merge it in (owner/admin only; run only when asked)
 driftless context reject <slug>      # send an up-for-review topic back to a Note
 driftless context archive <slug>     # retire a topic
 ```
 
-**Suggested edit** — propose a content change to a Knowledge topic instead of overwriting it; a human reviews and merges it in:
+**Suggested edit** — propose a content change to a Knowledge topic instead of overwriting it; an owner/admin reviews and merges it in:
 
 ```bash
 driftless context pr <slug>                                        # list open Suggested edits
 driftless context pr <slug> --open --summary "why" --content @new.md   # open a Suggested edit
-driftless context pr <slug> --merge <id>                           # merge it in (human)
-driftless context pr <slug> --reject <id>                          # close without merging (human)
+driftless context pr <slug> --merge <id>                           # merge it in (owner/admin)
+driftless context pr <slug> --reject <id>                          # close without merging (owner/admin)
 ```
 
-`approve` / `merge` / `reject` require a human identity — an ownerless agent key writes notes but never merges them in. If a Knowledge (`reviewed`) topic needs to change, open a Suggested edit (`pr`); don't clobber it.
+`approve` / `merge` / `reject` require owner/admin authority — an ownerless agent key or a non-owner writes notes but is refused the merge. Don't merge unprompted: do it only on an explicit owner/admin request. If a Knowledge (`reviewed`) topic needs to change, open a Suggested edit (`pr`); don't clobber it.
 
 #### Share a topic publicly
 
